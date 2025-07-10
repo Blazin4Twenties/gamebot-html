@@ -1091,7 +1091,7 @@
       </div>
       <div id="equipment-legend"></div>
     </div>
-    <div class="panel" id="bag/inventory">
+    <div class="panel" id="baginv-panel">
       <div id="baginv-tabs">
         <button class="baginv-tab active" id="tab-inventory" onclick="switchBagInv('inventory')">Inventory</button>
         <button class="baginv-tab" id="tab-bag" onclick="switchBagInv('bag')">Bag</button>
@@ -1102,7 +1102,7 @@
       <h2>Current Stats</h2>
       <ul id="derived-stats-list"></ul>
     </div>
-    <div class="panel" id="Bank">
+    <div class="panel" id="bank-panel">
       <button id="bank-open-btn" onclick="openBank()">Open Bank</button>
     </div>
   </div>
@@ -3122,6 +3122,8 @@ if (mainLoadInput) {
     } catch (e) {}
   });
 }
+
+
 </script>
 </body>
 </html>
