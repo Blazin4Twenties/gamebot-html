@@ -3121,6 +3121,9 @@ if (mainLoadInput) {
     } catch (e) {}
   });
 }
+  const node = Array.from(document.querySelectorAll('body *')).find(
+  el => el.textContent.includes('login')
+);
 
 
 </script>
