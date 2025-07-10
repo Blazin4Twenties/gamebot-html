@@ -2627,6 +2627,19 @@ if (!document.getElementById('main-load-input')) {
           Object.assign(visitedTowns, saveData.visitedTowns);
           playerPosition.x = typeof saveData.playerPosition.x === "number" ? saveData.playerPosition.x : Math.floor(mapSize/2);
           playerPosition.y = typeof saveData.playerPosition.y === "number" ? saveData.playerPosition.y : Math.floor(mapSize/2);
+          // Ensure discovered array is properly sized
+          if (!Array.isArray(discovered) || discovered.length !== mapSize) {
+            discovered = [];
+            for (let y = 0; y < mapSize; ++y) {
+              let drow = [];
+              for (let x = 0; x < mapSize; ++x) drow.push(false);
+              discovered.push(drow);
+            }
+          }
+          if (!Array.isArray(discovered[playerPosition.y])) {
+            discovered[playerPosition.y] = [];
+            for (let x = 0; x < mapSize; ++x) discovered[playerPosition.y][x] = false;
+          }
           discovered[playerPosition.y][playerPosition.x] = true;
           // Do not load mapData, discovered, towns, chests
           renderPlayerStats();
