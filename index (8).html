@@ -1,0 +1,3141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Legend of III Game Web Interface</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #202124;
+      color: #eee;
+      margin: 0;
+      padding: 0;
+    }
+    #container {
+      display: grid;
+      grid-template-columns: 420px 1fr 420px;
+      gap: 18px;
+      padding: 26px;
+      max-width: 2200px;
+      margin: auto;
+    }
+    #explore-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 28px;
+      margin-top: 10px;
+    }
+    #explore-btn-top {
+      background: #ffba3a;
+      color: #23252a;
+      border-radius: 12px;
+      border: none;
+      padding: 14px 52px;
+      font-weight: bold;
+      font-size: 1.47em;
+      cursor: pointer;
+      box-shadow: 0 2px 14px #0006;
+      letter-spacing: 1.5px;
+      transition: background 0.18s, color 0.18s;
+    }
+    #explore-btn-top:hover {
+      background: #ffd36b;
+      color: #111;
+    }
+    #direction-select-bar {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 10px;
+    }
+    #direction-select-bar.active {
+      display: flex;
+    }
+    .direction-btn {
+      background: #35373e;
+      color: #ffba3a;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-weight: bold;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin: 0 4px;
+      transition: background 0.17s;
+    }
+    .direction-btn:hover {
+      background: #ffba3a;
+      color: #23252a;
+    }
+    #left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel {
+      background: #292c31;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 10px #000a;
+      margin-bottom: 0;
+      min-width: 370px;
+    }
+    .panel h2 {
+      margin-top: 0;
+      color: #ffba3a;
+      font-size: 1.19em;
+      letter-spacing: 1px;
+      margin-bottom: 9px;
+      text-shadow: 0 0 3px #222, 0 2px 1px #1919195c;
+    }
+    #player-stats-ul {
+      list-style: none; margin: 0; padding: 0;
+      font-size: 1.05em;
+    }
+    #player-stats-ul li { margin-bottom: 3px; }
+    .gold { color: gold; }
+    .health { color: #90ee90; }
+    .level { color: #61dafb; }
+    #equipment-panel {
+      position: relative;
+      overflow: visible;
+      padding-bottom: 0;
+    }
+    #equipment-ui {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 10px;
+      min-height: 320px;
+      margin-bottom: 10px;
+    }
+    .equipment-side {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 120px;
+      align-items: flex-end;
+    }
+    .equipment-side.right {
+      align-items: flex-start;
+    }
+    #char-portrait-box {
+      position: relative;
+      width: 120px; height: 220px;
+      margin: 0 8px;
+      background: #23252a;
+      border-radius: 9px;
+      border: 2px solid #23252a;
+      box-shadow: 0 0 14px #1c1d1f7d, 0 2px 20px #0007;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #char-portrait {
+      width: 90px; height: 180px;
+      background: #23252a;
+      z-index: 2;
+    }
+    .equip-slot {
+      width: 120px; height: 38px;
+      margin: 3px 0;
+      background: #23252a;
+      border-radius: 6px;
+      border: 2px solid #353841;
+      display: flex; align-items: center; justify-content: flex-start;
+      position: relative;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      font-size: 1.01em;
+      color: #ffba3a;
+      font-weight: bold;
+      padding-left: 10px;
+      overflow: visible;
+      min-width: 120px;
+      max-width: 140px;
+      white-space: nowrap;
+    }
+    .equip-slot.selected, .equip-slot:hover {
+      border-color: #ffba3a;
+      box-shadow: 0 0 4px #ffba3a90;
+      z-index: 4;
+    }
+    .equip-slot .slot-tooltip {
+      display: none;
+      position: absolute;
+      left: 110%;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #18191c;
+      color: #eee;
+      padding: 7px 13px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      white-space: nowrap;
+      font-size: 0.98em;
+      box-shadow: 0 2px 10px #0007;
+      z-index: 10;
+      pointer-events: none;
+      min-width: 160px;
+    }
+    .equip-slot:hover .slot-tooltip {
+      display: block;
+    }
+    #equipment-legend {
+      margin-top: 10px; color: #aaa; font-size: 0.96em; text-align: center;
+    }
+    #baginv-panel {
+      min-height: 155px;
+    }
+    #baginv-tabs {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .baginv-tab {
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      background: #23252a;
+      color: #fff;
+      border-radius: 6px 6px 0 0;
+      padding: 7px 20px;
+      cursor: pointer;
+      transition: background 0.22s, color 0.22s;
+      outline: none;
+      border-bottom: 2px solid transparent;
+    }
+    .baginv-tab.active, .baginv-tab:hover {
+      background: #34373e;
+      color: #ffba3a;
+      border-bottom: 2px solid #ffba3a;
+    }
+    #baginv-content {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      min-height: 70px;
+      margin-bottom: 2px;
+      justify-content: flex-start;
+    }
+    .item-card {
+      background: #23252a;
+      border-radius: 7px;
+      border: 2px solid #353841;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 7px 10px 7px 10px;
+      width: 110px;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.18s;
+      min-height: 85px;
+      font-size: 1em;
+      color: #ffba3a;
+      font-weight: bold;
+      justify-content: center;
+      word-break: break-word;
+      max-width: 140px;
+    }
+    .item-card.selected, .item-card:hover {
+      border-color: #ffba3a;
+      box-shadow: 0 0 7px #ffba3a7c;
+      z-index: 5;
+    }
+    .item-name {
+      font-size: 1em;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 2.5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+      width: 100%;
+      max-width: 120px;
+      word-break: break-word;
+    }
+    .item-actions {
+      display: flex;
+      gap: 3px;
+      margin-top: 1px;
+    }
+    .item-action-btn {
+      font-size: 0.98em;
+      border: none;
+      background: #35373e;
+      color: #fff;
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+      margin: 0 1px;
+      transition: background 0.14s;
+    }
+    .item-action-btn:hover {
+      background: #ffba3a;
+      color: #101015;
+    }
+    .bag-x-remove-btn {
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.05em;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      z-index: 7;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.12s;
+    }
+    .bag-x-remove-btn:hover {
+      background: #ff0000;
+      color: #fff;
+    }
+    .bag-equip-btn {
+      margin-top: 2px;
+      font-size: 1.01em;
+      border: none;
+      background: #35373e;
+      color: #fff;
+      border-radius: 4px;
+      padding: 2px 12px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 90%;
+      transition: background 0.14s;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .bag-equip-btn:hover {
+      background: #ffba3a;
+      color: #101015;
+    }
+    #center-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      position: relative;
+      min-height: 520px;
+    }
+    #enemy-encounter {
+      display: none;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 450px;
+      width: 355px;
+      background: #1b1c23;
+      border-radius: 14px;
+      box-shadow: 0 4px 28px #000a;
+      margin-top: 24px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 12;
+      border: 2.5px solid #3d3b2f;
+      animation: popin 0.38s;
+    }
+    #chest-encounter {
+      display: none;
+      align-items: center;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 220px;
+      width: 355px;
+      background: #1b1c23;
+      border-radius: 14px;
+      box-shadow: 0 4px 28px #000a;
+      margin-top: 24px;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 13;
+      border: 2.5px solid #3d3b2f;
+      animation: popin 0.38s;
+    }
+    #chest-encounter h3 {
+      color: #ffba3a;
+      margin-top: 18px;
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+    #chest-encounter .chest-reward {
+      color: gold;
+      font-size: 1.2em;
+      margin-bottom: 12px;
+    }
+    #chest-encounter .chest-btn {
+      background: #ffba3a;
+      color: #23252a;
+      border-radius: 10px;
+      border: none;
+      padding: 10px 32px;
+      font-weight: bold;
+      font-size: 1.1em;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.18s, color 0.18s;
+    }
+    #chest-encounter .chest-btn:hover {
+      background: #ffd36b;
+      color: #111;
+    }
+    @keyframes popin {
+      0% { opacity: 0; transform: scale(0.82);}
+      100% { opacity: 1; transform: scale(1);}
+    }
+    #enemy-health-top {
+      margin-top: 12px;
+      margin-bottom: 0;
+      width: 130px;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+    #enemy-hp-bar {
+      width: 110px;
+      height: 16px;
+      background: #2d2222;
+      border-radius: 7px;
+      border: 1px solid #555;
+      margin: 0 7px 0 0;
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    #enemy-hp-bar-inner {
+      background: linear-gradient(90deg, #ff6060 60%, #ffd700 100%);
+      height: 100%;
+      transition: width 0.22s;
+      border-radius: 7px;
+      position: absolute; left: 0; top: 0;
+    }
+    #enemy-hp-bar-text {
+      color: #fff;
+      font-size: 0.95em;
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      left: 0; top: 0;
+      pointer-events: none;
+      text-shadow: 0 0 3px #000;
+    }
+    #attack-label {
+      font-family: 'Oswald', 'Segoe UI', Arial, sans-serif;
+      font-weight: bold;
+      color: #ffba3a;
+      text-shadow: 0 2px 6px #000, 0 0 2px #fff8;
+      font-size: 2.1em;
+      letter-spacing: 2px;
+      margin-bottom: 0;
+      text-align: center;
+      margin-top: 6px;
+      margin-bottom: 5px;
+      user-select: none;
+    }
+    #enemy-image {
+      width: 158px;
+      height: 158px;
+      margin: 25px auto 5px auto;
+      background: #23252a;
+      border-radius: 10px;
+      box-shadow: 0 2px 14px #0007, 0 0 8px #ff55552a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border: 2px solid #444;
+      z-index: 2;
+      font-size: 1.44em;
+      color: #ffba3a;
+      font-weight: bold;
+      text-align: center;
+      justify-content: center;
+    }
+    #enemy-name-label {
+      font-size: 1.05em;
+      font-weight: bold;
+      color: #ffba3a;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #enemy-controls {
+      margin: 8px 0 19px 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 19px;
+      justify-content: center;
+    }
+    .enemy-action-btn {
+      font-size: 1.04em;
+      border: none;
+      background: #35373e;
+      color: #fff;
+      border-radius: 7px;
+      padding: 4px 18px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.19s;
+      margin: 0 2px;
+      min-width: 78px;
+    }
+    .enemy-action-btn#attack-enemy-btn {
+      order: -1;
+      margin-right: 10px;
+    }
+    .enemy-action-btn#run-enemy-btn {
+      order: 1;
+    }
+    .enemy-action-btn:hover { background: #ffba3a; color: #191717;}
+    .hitsplat {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 14px;
+      background: #ff4444;
+      color: #fff;
+      font-weight: bold;
+      padding: 4px 16px;
+      border-radius: 11px;
+      font-size: 1.3em;
+      box-shadow: 0 1px 6px #a00a;
+      opacity: 0.93;
+      animation: splat 0.9s cubic-bezier(.59,.22,.44,1.36);
+      pointer-events: none;
+      z-index: 5;
+      border: 2.2px solid #fff3;
+    }
+    @keyframes splat {
+      0% { top: 34px; opacity: 0.01;}
+      17% { opacity: 1;}
+      50% { top: -16px; opacity: 0.95;}
+      90% { opacity: 0.95;}
+      100% { top: -32px; opacity: 0;}
+    }
+    #right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 320px;
+    }
+    #map-panel {
+      padding-bottom: 9px;
+    }
+    #map-container {
+      background: #1a1b1e;
+      border-radius: 9px;
+      border: 2px solid #444;
+      width: 620px; /* 18*32px + 17*2px gap + padding */
+      min-width: 620px;
+      max-width: 100vw;
+      margin: 0 auto;
+      padding: 7px 0 4px 0;
+      box-shadow: 0 0 8px #0007;
+      position: relative;
+    }
+    #map-index {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      margin: 10px 0 10px 0;
+      justify-content: center;
+      font-size: 0.98em;
+    }
+    .map-index-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: bold;
+    }
+    .map-index-color {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 2px solid #444;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    #game-map {
+      display: grid;
+      grid-template-columns: repeat(18, 32px);
+      grid-template-rows: repeat(18, 32px);
+      gap: 2px;
+      background: #23252a;
+      border-radius: 7px;
+      border: 2px solid #444;
+      width: 596px; /* 18*32px + 17*2px gap */
+      min-width: 596px;
+      max-width: 100vw;
+      margin: auto;
+    }
+    .map-cell {
+      width: 32px;
+      height: 32px;
+      background: #222;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75em;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #292c31;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+      user-select: none;
+    }
+    .map-cell.player {
+      outline: 2.5px solid #fff;
+      z-index: 3;
+    }
+    .map-cell.central-town {
+      background: #e53935 !important;
+      color: #fff;
+      font-weight: bold;
+      box-shadow: 0 0 8px #e5393593;
+      z-index: 2;
+    }
+    .map-cell.town {
+      background: #3887e0 !important;
+      color: #fff;
+      font-weight: bold;
+      box-shadow: 0 0 8px #3887e093;
+      z-index: 2;
+    }
+    .map-cell.area {
+      background: #ffe066 !important;
+      color: #23252a;
+      font-weight: bold;
+    }
+    .map-cell.discovered {
+      background: #2e7d32 !important;
+      color: #fff;
+    }
+    .map-cell.chest {
+      background: #bfae44 !important;
+      color: #23252a;
+    }
+    .map-cell.undiscovered {
+      background: #444 !important;
+      color: #888;
+      font-style: italic;
+    }
+    #map-controls {
+      text-align: center; margin-top: 4px;
+    }
+    .map-move-btn {
+      margin: 2px 4px;
+      background: #35373e;
+      color: #eee;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 1.11em;
+    }
+    .map-move-btn:hover {
+      background: #ffba3a;
+      color: #23252a;
+    }
+    #map-area-label {
+      margin-top: 7px;
+      font-size: 1em;
+      color: #ffba3a;
+      text-align: center;
+    }
+    #bank-panel {
+      margin-top: 6px;
+      margin-bottom: 0;
+      padding-bottom: 10px;
+    }
+    #bank-open-btn {
+      background: #35373e;
+      color: #ffba3a;
+      border-radius: 8px;
+      border: none;
+      padding: 6px 20px;
+      font-weight: 600;
+      font-size: 1.08em;
+      cursor: pointer;
+      margin: 0 auto 5px auto;
+      display: block;
+      transition: background 0.17s;
+    }
+    #bank-open-btn:hover {
+      background: #ffba3a;
+      color: #26221c;
+    }
+    #bank-modal-bg {
+      display: none;
+      position: fixed;
+      z-index: 1200;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #18191cbb;
+      align-items: center;
+      justify-content: center;
+    }
+    #bank-modal {
+      background: #23252a;
+      border-radius: 18px;
+      box-shadow: 0 0 44px #000c, 0 5px 32px #2b2a2a45;
+      padding: 32px 29px 24px 29px;
+      min-width: 450px;
+      min-height: 320px;
+      position: relative;
+      z-index: 1211;
+      display: flex;
+      flex-direction: column;
+    }
+    #bank-modal h2 {
+      margin-bottom: 10px;
+      color: #ffba3a;
+    }
+    #bank-close-btn {
+      position: absolute; top: 12px; right: 16px;
+      font-size: 1.38em;
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+    #bank-content {
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+      margin-top: 14px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .bank-section {
+      min-width: 180px;
+    }
+    .bank-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 110px;
+    }
+    .bank-item-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #18191c;
+      border-radius: 7px;
+      border: 1px solid #444;
+      padding: 4px 8px;
+      font-size: 0.97em;
+      min-width: 120px;
+      min-height: 36px;
+      color: #ffba3a;
+      font-weight: bold;
+    }
+    .bank-action-btn {
+      background: #35373e;
+      color: #ffba3a;
+      border: none;
+      border-radius: 5px;
+      padding: 2px 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.98em;
+      margin-left: 6px;
+      transition: background 0.14s;
+    }
+    .bank-action-btn:hover { background: #ffba3a; color: #26221c;}
+    #bank-empty-msg { color: #888; font-size: 0.95em; text-align: center; margin-top: 13px; }
+    #log-panel {
+      min-height: 130px;
+      margin-top: 7px;
+      grid-column:1/4;
+      max-width:none;
+      width:100%;
+      margin-top:24px;
+    }
+    #game-log {
+      height: 142px;
+      overflow-y: auto;
+      background: #181818;
+      padding: 7px 7px;
+      border-radius: 4px;
+      font-size: 0.99em;
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      max-height: 142px;
+      border: 1.2px solid #333;
+      margin-bottom: 1px;
+    }
+    #derived-stats-panel {
+      margin-top: 0;
+      margin-bottom: 0;
+      padding-bottom: 5px;
+    }
+    #derived-stats-list {
+      list-style: none; margin: 0; padding: 0; font-size: 1em;
+    }
+    #derived-stats-list li { margin-bottom: 3px; }
+    .derived-label { color: #ffba3a; font-weight: bold; margin-right: 5px;}
+    #left-col #derived-stats-panel {
+      order: 4;
+      margin-top: 0;
+      margin-bottom: 0;
+      min-width: 310px;
+    }
+    #right-col #derived-stats-panel {
+      display: none !important;
+    }
+    #actions-panel .action-btn:first-child {
+      display: none !important;
+    }
+    @media (max-width: 1400px) {
+      #container { grid-template-columns: 1fr; grid-template-rows: auto; }
+      #left-col, #right-col { min-width: 175px; }
+      #center-col { min-width: 280px;}
+      #explore-bar { margin-bottom: 10px; }
+      #map-container { width: 370px; min-width: 370px; }
+      #game-map { grid-template-columns: repeat(18, 18px); grid-template-rows: repeat(18, 18px); width: 342px; min-width: 342px; }
+      #map-index { font-size: 0.85em; }
+      .map-index-color { width: 12px; height: 12px; }
+    }
+    /* Update these styles in your <style> section */
+#map-container {
+  background: #1a1b1e;
+  border-radius: 9px;
+  border: 2px solid #444;
+  width: 620px; /* 18*32px + 17*2px gap + padding */
+  min-width: 620px;
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 7px 0 4px 0;
+  box-shadow: 0 0 8px #0007;
+  position: relative;
+}
+
+#game-map {
+  display: grid;
+  grid-template-columns: repeat(18, 32px);
+  grid-template-rows: repeat(18, 32px);
+  gap: 2px;
+  background: #23252a;
+  border-radius: 7px;
+  border: 2px solid #444;
+  width: 596px; /* 18*32px + 17*2px gap */
+  min-width: 596px;
+  max-width: 100vw;
+  margin: auto;
+}
+
+.map-cell {
+  width: 32px;
+  height: 32px;
+  background: #222;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75em;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #292c31;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  user-select: none;
+}
+
+/* Responsive: shrink map for small screens */
+@media (max-width: 1100px) {
+  #map-container { width: 370px; min-width: 370px; }
+  #game-map { grid-template-columns: repeat(18, 18px); grid-template-rows: repeat(18, 18px); width: 342px; min-width: 342px; }
+  .map-cell { width: 18px; height: 18px; font-size: 0.55em; }
+}
+    .panel-draggable-handle {
+      cursor: grab;
+      background: #191a1e;
+      color: #ffba3a;
+      font-weight: bold;
+      padding: 4px 0 4px 10px;
+      border-radius: 8px 8px 0 0;
+      user-select: none;
+      margin: -16px -18px 8px -18px;
+      font-size: 1.05em;
+      letter-spacing: 1px;
+    }
+    .panel.dragging {
+      opacity: 0.6;
+    }
+    .drop-target {
+      outline: 3px dashed #ffba3a;
+      background: #23252a44;
+    }
+    #username-overlay {
+      position: fixed;
+      z-index: 3000;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #191a1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #username-overlay > div {
+      background: #23252a;
+      padding: 38px 44px 32px 44px;
+      border-radius: 18px;
+      box-shadow: 0 2px 24px #000a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #username-overlay h2 {
+      color: #ffba3a;
+      margin-bottom: 18px;
+    }
+    #username-input {
+      font-size: 1.2em;
+      padding: 8px 18px;
+      border-radius: 7px;
+      border: 1.5px solid #444;
+      background: #18191c;
+      color: #fff;
+      margin-bottom: 18px;
+      width: 220px;
+      outline: none;
+    }
+    #username-submit {
+      font-size: 1.1em;
+      font-weight: bold;
+      background: #ffba3a;
+      color: #23252a;
+      border: none;
+      border-radius: 7px;
+      padding: 8px 32px;
+      cursor: pointer;
+    }
+    #username-error {
+      color: #ff4444;
+      margin-top: 10px;
+      display: none;
+      font-size: 1em;
+    }
+    #overlay-save-load-ui {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    #overlay-save-btn {
+      font-weight: bold;
+      font-size: 1em;
+      background: #ffba3a;
+      color: #23252a;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 18px;
+      cursor: pointer;
+    }
+    #overlay-load-btn {
+      font-weight: bold;
+      font-size: 1em;
+      background: #35373e;
+      color: #ffba3a;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 18px;
+      cursor: pointer;
+      display: none;
+    }
+    #overlay-save-list {
+      display: none;
+      margin-left: 8px;
+      font-size: 1em;
+      padding: 4px 8px;
+      border-radius: 5px;
+    }
+    /* --- ADDED STYLES FOR SAVE/LOAD UI --- */
+    #main-save-ui {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2100;
+      background: #23252a;
+      border-radius: 10px;
+      padding: 8px 16px;
+      box-shadow: 0 2px 12px #0007;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    #overlay-load-delete-ui {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    #overlay-delete-btn {
+      font-weight: bold;
+      font-size: 1em;
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 18px;
+      cursor: pointer;
+      display: none;
+    }
+    #delete-save-ui {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    #delete-save-list {
+      margin-bottom: 8px;
+      font-size: 1em;
+      padding: 4px 8px;
+      border-radius: 5px;
+    }
+    #confirm-delete-btn {
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 18px;
+      cursor: pointer;
+    }
+    #flame-bg {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      display: block;
+      background: #191a1e;
+    }
+    body > *:not(#flame-bg) {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;">
+<canvas id="flame-bg"></canvas>
+<!-- Save button in main UI, top left -->
+<div id="main-save-ui" style="position:fixed;top:10px;left:10px;z-index:2100;background:#23252a;border-radius:10px;padding:8px 16px;box-shadow:0 2px 12px #0007;display:flex;gap:8px;align-items:center;">
+  <button id="main-save-btn" style="font-weight:bold;font-size:1em;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;">Save</button>
+</div>
+<!-- Username overlay with load/delete only -->
+<div id="username-overlay" style="position:fixed;z-index:3000;top:0;left:0;width:100vw;height:100vh;background:#191a1e;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#23252a;padding:38px 44px 32px 44px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;">
+    <button onclick="document.getElementById('username-music').play()">Interface Sound</button>
+    <button onclick="document.getElementById('username-music').pause()">Stop Music</button>
+    <!-- Load button above username -->
+    <button id="overlay-load-btn" style="font-weight:bold;font-size:1em;background:#35373e;color:#ffba3a;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;margin-bottom:14px;">Load</button>
+    <div id="overlay-load-delete-ui" style="display:flex;gap:8px;align-items:center;margin-bottom:18px;">
+      <select id="overlay-save-list" style="display:none;margin-left:8px;font-size:1em;padding:4px 8px;border-radius:5px;"></select>
+      <button id="overlay-delete-btn" style="font-weight:bold;font-size:1em;background:#ff4444;color:#fff;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;display:none;">Delete Save</button>
+    </div>
+    <div id="delete-save-ui" style="display:none;flex-direction:column;align-items:center;margin-bottom:10px;">
+      <select id="delete-save-list" style="margin-bottom:8px;font-size:1em;padding:4px 8px;border-radius:5px;"></select>
+      <button id="confirm-delete-btn" style="background:#ff4444;color:#fff;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;">Confirm Delete</button>
+    </div>
+    <h2 style="color:#ffba3a;margin-bottom:18px;">Enter Username</h2>
+    <input id="username-input" type="text" maxlength="18" placeholder="Your name..." style="font-size:1.2em;padding:8px 18px;border-radius:7px;border:1.5px solid #444;background:#18191c;color:#fff;margin-bottom:18px;width:220px;outline:none;" autofocus>
+    <button id="username-submit" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Start Game</button>
+    <div id="username-error" style="color:#ff4444;margin-top:10px;display:none;font-size:1em;"></div>
+  </div>
+</div>
+<div id="explore-bar">
+  <button id="explore-btn-top" onclick="startExplore()">Explore</button>
+</div>
+<div id="direction-select-bar">
+  <span style="color:#ffba3a;font-weight:bold;">Pick a direction:</span>
+  <button class="direction-btn" onclick="chooseExploreDir(0,-1)">North</button>
+  <button class="direction-btn" onclick="chooseExploreDir(1,0)">East</button>
+  <button class="direction-btn" onclick="chooseExploreDir(0,1)">South</button>
+  <button class="direction-btn" onclick="chooseExploreDir(-1,0)">West</button>
+</div>
+<div id="container">
+  <div id="left-col">
+    <div class="panel" id="player-stats-panel">
+      <h2>Player Stats</h2>
+      <ul id="player-stats-ul"></ul>
+    </div>
+    <div class="panel" id="equipment-panel">
+      <h2>Equipment</h2>
+      <div id="equipment-ui">
+        <div class="equipment-side left" id="equipment-slots-left"></div>
+        <div id="char-portrait-box">
+          <div id="char-portrait"></div>
+        </div>
+        <div class="equipment-side right" id="equipment-slots-right"></div>
+      </div>
+      <div id="equipment-legend"></div>
+    </div>
+    <div class="panel" id="baginv-panel">
+      <div id="baginv-tabs">
+        <button class="baginv-tab active" id="tab-inventory" onclick="switchBagInv('inventory')">Inventory</button>
+        <button class="baginv-tab" id="tab-bag" onclick="switchBagInv('bag')">Bag</button>
+      </div>
+      <div id="baginv-content"></div>
+    </div>
+    <div class="panel" id="derived-stats-panel">
+      <h2>Current Stats</h2>
+      <ul id="derived-stats-list"></ul>
+    </div>
+    <div class="panel" id="bank-panel">
+      <button id="bank-open-btn" onclick="openBank()">Open Bank</button>
+    </div>
+  </div>
+  <div id="center-col">
+    <div id="enemy-encounter">
+      <div id="attack-label">ATTACK</div>
+      <div id="enemy-health-top">
+        <div id="enemy-hp-bar">
+          <div id="enemy-hp-bar-inner"></div>
+          <div id="enemy-hp-bar-text"></div>
+        </div>
+      </div>
+      <div id="enemy-image"></div>
+      <div id="enemy-name-label"></div>
+      <div id="enemy-controls">
+        <button class="enemy-action-btn" onclick="attackEnemy()" id="attack-enemy-btn">Attack</button>
+        <button class="enemy-action-btn" onclick="runFromEnemy()" id="run-enemy-btn">Run</button>
+      </div>
+    </div>
+    <div id="chest-encounter">
+      <h3>Chest Found!</h3>
+      <div class="chest-reward" id="chest-reward"></div>
+      <button class="chest-btn" onclick="closeChest()">Close</button>
+    </div>
+  </div>
+  <div id="right-col">
+    <div class="panel" id="map-panel">
+      <h2>Map</h2>
+      <div id="map-container">
+        <div id="map-index">
+          <div class="map-index-item"><span class="map-index-color" style="background:#e53935"></span>Central Town</div>
+          <div class="map-index-item"><span class="map-index-color" style="background:#3887e0"></span>Town</div>
+          <div class="map-index-item"><span class="map-index-color" style="background:#ffe066"></span>Area (Undiscovered)</div>
+          <div class="map-index-item"><span class="map-index-color" style="background:#2e7d32"></span>Area (Discovered)</div>
+          <div class="map-index-item"><span class="map-index-color" style="background:#bfae44"></span>Chest</div>
+          <div class="map-index-item"><span class="map-index-color" style="background:#444"></span>Unknown</div>
+        </div>
+        <div id="game-map"></div>
+        <div id="map-controls">
+          <button class="map-move-btn" onclick="movePlayer(-1,0)">⬅️</button>
+          <button class="map-move-btn" onclick="movePlayer(0,-1)">⬆️</button>
+          <button class="map-move-btn" onclick="movePlayer(1,0)">➡️</button>
+          <button class="map-move-btn" onclick="movePlayer(0,1)">⬇️</button>
+        </div>
+        <div id="map-area-label"></div>
+      </div>
+    </div>
+    <div class="panel" id="shop-panel" style="margin-top:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+  <h2 style="font-weight:bold;">Shop</h2>
+  <button id="refresh-shop-btn" style="font-size:1em;background:#35373e;color:#ffba3a;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;">Refresh Shop</button>
+    </div>
+      <div id="shop-items-list" style="margin-top:18px;"></div>
+    </div>
+    <div class="panel" id="log-panel" style="grid-column:1/4;max-width:none;width:100%;margin-top:24px;">
+      <h2>Game Log</h2>
+      <div id="game-log"></div>
+    </div>
+  </div>
+</div>
+<div id="bank-modal-bg" style="display:none;position:fixed;z-index:1200;top:0;left:0;width:100vw;height:100vh;background:#18191cbb;align-items:center;justify-content:center;">
+  <div id="bank-modal" style="background:#23252a;border-radius:18px;box-shadow:0 0 44px #000c,0 5px 32px #2b2a2a45;padding:32px 29px 24px 29px;min-width:450px;min-height:320px;position:relative;z-index:1211;display:flex;flex-direction:column;">
+    <button id="bank-close-btn" onclick="closeBank()" style="position:absolute;top:12px;right:16px;font-size:1.38em;background:none;border:none;color:#fff;cursor:pointer;">&times;</button>
+    <h2>Bank</h2>
+    <div id="bank-content" style="display:flex;flex-direction:row;gap:32px;margin-top:14px;justify-content:center;align-items:flex-start;">
+      <div class="bank-section">
+        <div style="font-weight:bold;color:#ffba3a;margin-bottom:7px;">Bank Items</div>
+        <div class="bank-list" id="bank-list"></div>
+      </div>
+      <div class="bank-section">
+        <div style="font-weight:bold;color:#ffba3a;margin-bottom:7px;">Inventory/Bag</div>
+        <div class="bank-list" id="bank-inv-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const itemIcons = {};
+let player = {
+  name: "Hero",
+  health: 100,
+  maxHealth: 100,
+  gold: 1000,
+  experience: 0,
+  level: 1,
+  bankGold: 0,
+  inventory: [
+    { name: "Potion", type: "potion", heal: 50, count: 10 },
+    { name: "Arrows", type: "arrows", count: 100 }
+   
+  ],
+  bag: [],
+  equipment: {
+    helmet: null,
+    weapon: null,
+    armor: null,
+    ring: null,
+    arrows: null,
+    cloak: null,
+    shield: null,
+    amulet: null,
+    gloves: null,
+    boots: null
+  },
+  bank: []
+};
+// Equipment slot order for UI
+const equipmentOrderLeft = [
+  {slot: "helmet", label: "Helmet"},
+  {slot: "weapon", label: "Weapon"},
+  {slot: "armor", label: "Armor"},
+  {slot: "ring", label: "Ring"},
+  {slot: "arrows", label: "Arrows"}
+];
+const equipmentOrderRight = [
+  {slot: "cloak", label: "Cloak"},
+  {slot: "shield", label: "Shield"},
+  {slot: "amulet", label: "Amulet"},
+  {slot: "gloves", label: "Gloves"},
+  {slot: "boots", label: "Boots"}
+];
+let areaNames = [
+  "Plains", "Forest", "Mountain", "River", "Ruins", "Cave", "Desert", "Swamp", "Valley", "Hills"
+];
+let mapSize = 18;
+let mapData = [];
+let discovered = [];
+let towns = [];
+let chests = [];
+let playerPosition = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
+let enemyIcons = {};
+const enemyPool = [
+  { name: "Slime", maxHealth: 40, minAttack: 4, maxAttack: 9, xp: 15 },
+  { name: "Goblin", maxHealth: 55, minAttack: 7, maxAttack: 14, xp: 22 },
+  { name: "Wolf", maxHealth: 65, minAttack: 10, maxAttack: 19, xp: 29 },
+  { name: "Bandit", maxHealth: 80, minAttack: 14, maxAttack: 23, xp: 40 },
+  { name: "Orc", maxHealth: 120, minAttack: 18, maxAttack: 29, xp: 60 },
+  { name: "Dark Knight", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Fire Elemental", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Stone Golem", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Vampire Lord", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Frost Giant", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Shadow Assassin", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Ancient Dragon", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Lich King", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Forest Guardian", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Thunder Beast", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+  { name: "Skeleton Warrior", maxHealth: 70, minAttack: 12, maxAttack: 20, xp: 32 },
+  { name: "Zombie", maxHealth: 90, minAttack: 10, maxAttack: 18, xp: 28 },
+  { name: "Harpy", maxHealth: 60, minAttack: 15, maxAttack: 22, xp: 35 },
+  { name: "Troll", maxHealth: 140, minAttack: 20, maxAttack: 32, xp: 55 },
+  { name: "Sand Wraith", maxHealth: 85, minAttack: 17, maxAttack: 25, xp: 38 },
+  { name: "Cursed Knight", maxHealth: 130, minAttack: 25, maxAttack: 36, xp: 65 },
+  { name: "Giant Spider", maxHealth: 75, minAttack: 13, maxAttack: 21, xp: 30 },
+  { name: "Dire Bear", maxHealth: 110, minAttack: 18, maxAttack: 28, xp: 48 },
+  { name: "Crystal Serpent", maxHealth: 100, minAttack: 22, maxAttack: 33, xp: 52 },
+  { name: "Wraith", maxHealth: 95, minAttack: 19, maxAttack: 27, xp: 44 }
+  ];
+  // --- BOSS ENCOUNTER LOGIC ---
+  let moveCounter = 0;
+  let bossEncountered = false;
+  let bossActive = false;
+  let bossData = {
+    name: "Ancient Boss",
+    maxHealth: 500,
+    health: 500,
+    minAttack: 40,
+    maxAttack: 70,
+    xp: 250
+  };
+  function incrementMoveCounter() {
+    if (bossEncountered || bossActive) return;
+    moveCounter++;
+    // After 12+ moves, 15% chance per move to trigger boss
+    if (moveCounter >= 12 && Math.random() < 0.15) {
+      showBossPopup();
+    }
+  }
+  function showBossPopup() {
+    bossEncountered = true;
+    // Create popup if not exists
+    if (!document.getElementById('boss-popup')) {
+      const bossPopup = document.createElement('div');
+      bossPopup.id = 'boss-popup';
+      bossPopup.style = 'display:flex;position:fixed;z-index:5000;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;align-items:center;justify-content:center;';
+      bossPopup.innerHTML = `
+        <div style="background:#23252a;padding:38px 44px 32px 44px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:340px;">
+          <div style="color:#ff4444;font-size:1.5em;margin-bottom:18px;font-weight:bold;">You have encountered a <span style='color:gold;'>Boss!</span></div>
+          <div style="margin-bottom:18px;">Do you wish to fight the boss?<br><span style="color:#ffba3a;font-size:1.1em;">(Bosses drop a special weapon and full armor set!)</span></div>
+          <div style="display:flex;gap:18px;">
+            <button id="boss-popup-yes" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Fight</button>
+            <button id="boss-popup-no" style="font-size:1.1em;font-weight:bold;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Run</button>
+          </div>
+          <div id="boss-popup-msg" style="margin-top:14px;color:#ff4444;font-weight:bold;display:none;"></div>
+        </div>
+      `;
+      document.body.appendChild(bossPopup);
+    }
+    document.getElementById('boss-popup').style.display = 'flex';
+    document.getElementById('boss-popup-msg').style.display = 'none';
+    // Button logic
+    document.getElementById('boss-popup-yes').onclick = function() {
+      document.getElementById('boss-popup').style.display = 'none';
+      startBossFight();
+    };
+    document.getElementById('boss-popup-no').onclick = function() {
+      tryRunFromBoss();
+    };
+  }
+  function startBossFight() {
+    bossActive = true;
+    currentEnemy = {
+      ...bossData,
+      health: bossData.maxHealth
+    };
+    inCombat = true;
+    renderEnemyEncounter();
+    logMsg(`<span style="color:gold;font-weight:bold;">A Boss appears! Prepare for battle!</span>`);
+  }
+  function tryRunFromBoss() {
+    const msgDiv = document.getElementById('boss-popup-msg');
+    msgDiv.style.display = 'block';
+    // 20% chance to run away
+    if (Math.random() < 0.2) {
+      msgDiv.textContent = "You have successfully ran away from the boss!";
+      setTimeout(() => {
+        document.getElementById('boss-popup').style.display = 'none';
+        bossEncountered = false;
+        moveCounter = 0;
+      }, 1200);
+    } else {
+      // Fail: lose 15% max health
+      let dmg = Math.ceil(getTotalMaxHealth() * 0.15);
+      player.health = Math.max(1, player.health - dmg);
+      msgDiv.textContent = `Failed to run! The boss strikes you for ${dmg} damage! Try again or fight.`;
+      renderPlayerStats();
+      // If player tries again, can click Run again
+    }
+  }
+  // Patch movePlayer and doExplore to increment moveCounter
+  const origMovePlayer = movePlayer;
+  movePlayer = function(dx, dy) {
+    origMovePlayer(dx, dy);
+    incrementMoveCounter();
+  };
+  const origDoExplore = doExplore;
+  doExplore = function() {
+    origDoExplore();
+    incrementMoveCounter();
+  };
+  // Patch attackEnemy for boss drops
+  const origAttackEnemy = attackEnemy;
+  attackEnemy = function() {
+    if (bossActive && currentEnemy && currentEnemy.health <= 0) {
+      // Boss defeated
+      let goldDrop = 500 + Math.floor(Math.random() * 501);
+      player.gold += goldDrop;
+      // Special weapon
+      let specialWeapon = {
+        name: "Boss Sword",
+        type: "weapon",
+        attackPower: 60,
+        price: 0,
+        description: "A legendary sword dropped by the boss!"
+      };
+      addItem(specialWeapon);
+      // Full armor set
+      const armorSet = [
+        { type: "armor", name: "Boss Armor" },
+        { type: "shield", name: "Boss Shield" },
+        { type: "ring", name: "Boss Ring" },
+        { type: "arrows", name: "Boss Arrows", count: 100 },
+        { type: "helmet", name: "Boss Helmet" },
+        { type: "cloak", name: "Boss Cloak" },
+        { type: "amulet", name: "Boss Amulet" },
+        { type: "gloves", name: "Boss Gloves" },
+        { type: "boots", name: "Boss Boots" }
+      ];
+      armorSet.forEach(item => {
+        addItem({
+          ...item,
+          defense: 25,
+          health: 50,
+          price: 0,
+          description: "Boss drop: +50 HP, +25 DEF"
+        });
+      });
+      logMsg(`<span style="color:gold;font-weight:bold;">You defeated the Boss! +${currentEnemy.xp} XP, <span style="color:gold;">+${goldDrop} Gold</span>, and received a legendary weapon and full armor set!</span>`);
+      player.experience += currentEnemy.xp;
+      checkLevelUp();
+      bossActive = false;
+      bossEncountered = false;
+      moveCounter = 0;
+      clearEnemy();
+      renderPlayerStats();
+      return;
+    }
+    origAttackEnemy();
+  };
+
+
+function randomStat(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+const items = [
+  { name: 'Sword', price: 50, description: 'A basic sword for beginners.', type: 'weapon', attackPower: 15 },
+  { name: 'Shield', price: 30, description: 'A sturdy shield for protection.', type: 'shield', defense: 20 },
+  { name: 'Potion', price: 10, description: 'A basic healing potion.', type: 'potion', heal: 50 },
+  { name: 'Advanced Sword', price: 100, description: 'A more powerful sword for experienced fighters.', type: 'weapon', attackPower: 25 },
+  { name: 'Advanced Shield', price: 60, description: 'A stronger shield for better protection.', type: 'shield', defense: 30 },
+  { name: 'Advanced Potion', price: 25, description: 'A potion that heals more health.', type: 'potion', heal: 50 },
+  { name: 'Helmet', price: 40, description: 'A helmet to protect your head.', type: 'helmet', defense: 25, health: randomStat(30,100) },
+  { name: 'Armor', price: 80, description: 'A set of armor for full body protection.', type: 'armor', defense: 40 },
+  { name: 'Boots', price: 20, description: 'Boots to protect your feet.', type: 'boots', defense: 20, health: randomStat(20,100) },
+  { name: 'Magic Wand', price: 120, description: 'A wand for casting powerful spells.', type: 'weapon', attackPower: 20 },
+  { name: 'Bow', price: 70, description: 'A bow for ranged attacks.', type: 'weapon', attackPower: 18 },
+  { name: 'Arrows', price: 15, description: 'A set of arrows for your bow.', type: 'arrows' },
+  { name: 'Ring of Strength', price: 150, description: 'A ring that increases your strength.', type: 'ring', attackPower: 3, health: randomStat(10,100) },
+  { name: 'Amulet of Health', price: 200, description: 'An amulet that increases your health.', type: 'amulet', defense: 10 },
+  { name: 'Cloak of Invisibility', price: 300, description: 'A cloak that makes you invisible for a short time.', type: 'cloak', defense: 35, health: randomStat(25,100) },
+  { name: 'Dagger', price: 45, description: 'A small, quick weapon for close combat.', type: 'weapon', attackPower: 15 },
+  { name: 'Healing Herb', price: 5, description: 'A herb that heals minor wounds.', type: 'consumable', heal: 50 },
+  { name: 'Mana Potion', price: 20, description: 'A potion that restores mana.', type: 'potion', heal: 50 },
+  { name: 'Steel Boots', price: 35, description: 'Heavy boots for better protection.', type: 'boots', defense: 25, health: randomStat(30,100) },
+  { name: 'Fire Staff', price: 150, description: 'A staff that casts fire spells.', type: 'weapon', attackPower: 22 },
+  { name: 'Ice Amulet', price: 180, description: 'An amulet that grants resistance to ice.', type: 'amulet', defense: 15 },
+  { name: 'Thunder Hammer', price: 250, description: 'A hammer that strikes with thunder.', type: 'weapon', attackPower: 30 },
+  { name: 'Dragon Scale Armor', price: 500, description: 'Armor made from dragon scales.', type: 'armor', defense: 50 },
+  { name: 'Phoenix Feather', price: 75, description: 'A rare feather with magical properties.', type: 'material' },
+  { name: 'Elven Bow', price: 200, description: 'A bow crafted by elves.', type: 'weapon', attackPower: 25 },
+  { name: 'Mystic Ring', price: 220, description: 'A ring that enhances magical abilities.', type: 'ring', attackPower: 2, health: randomStat(10,100) },
+  { name: 'Warrior Helmet', price: 90, description: 'A helmet worn by warriors.', type: 'helmet', defense: 30, health: randomStat(40,100) },
+  { name: 'Assassin Cloak', price: 250, description: 'A cloak that grants stealth.', type: 'cloak', defense: 35, health: randomStat(30,100) },
+  { name: 'Knight Lance', price: 300, description: 'A lance used by knights.', type: 'weapon', attackPower: 28 },
+  { name: 'Ranger Hat', price: 60, description: 'A hat worn by rangers.', type: 'helmet', defense: 20, health: randomStat(20,100) },
+  { name: 'Mage Robe', price: 100, description: 'A robe worn by mages.', type: 'armor', defense: 25 },
+  { name: 'Leather Gloves', price: 25, description: 'Gloves for better grip.', type: 'gloves', defense: 15, health: randomStat(30,100) }
+];
+let currentEnemy = null;
+let inCombat = false;
+let baginvTab = "inventory";
+let searchTerm = "";
+let chestReward = 0;
+let chestOpen = false;
+let exploreDir = null;
+
+function getTotalDefense() {
+  return (player.equipment.armor?.defense || 0)
+    + (player.equipment.helmet?.defense || 0)
+    + (player.equipment.shield?.defense || 0)
+    + (player.equipment.cloak?.defense || 0)
+    + (player.equipment.boots?.defense || 0)
+    + (player.equipment.amulet?.defense || 0)
+    + (player.equipment.gloves?.defense || 0);
+}
+function getTotalMaxHealth() {
+  return player.maxHealth
+    + (player.equipment.helmet?.health || 0)
+    + (player.equipment.boots?.health || 0)
+    + (player.equipment.cloak?.health || 0)
+    + (player.equipment.ring?.health || 0)
+    + (player.equipment.gloves?.health || 0);
+}
+function getTotalAttack() {
+  return (player.equipment.weapon?.attackPower || 0)
+    + (player.equipment.ring?.attackPower || 0);
+}
+function renderPlayerStats() {
+  document.getElementById('player-stats-ul').innerHTML = `
+    <li><span class="username">Name:</span> ${player.name || username || ''}</li>
+    <li><span class="level">Level:</span> ${player.level}</li>
+    <li><span class="health">Health:</span> ${player.health}/${getTotalMaxHealth()}</li>
+    <li><span class="gold">Gold:</span> ${player.gold}</li>
+    <li>Experience: ${player.experience}</li>
+    <li>Bank Gold: ${player.bankGold}</li>
+    <li><span class="defense" style="color:#90ee90;">Defense:</span> ${getTotalDefense()}</li>
+    <li><span class="attack" style="color:#ffba3a;">Attack:</span> ${getTotalAttack()}</li>
+  `;
+}
+function renderDerivedStats() {
+  let atk = getTotalAttack();
+  let def = getTotalDefense();
+  let hp = getTotalMaxHealth();
+  let stats = [
+    `<li><span class="derived-label">Attack:</span> ${atk}</li>`,
+    `<li><span class="derived-label">Defense:</span> ${def}</li>`,
+    `<li><span class="derived-label">Max Health:</span> ${hp}</li>`
+  ];
+  document.getElementById('derived-stats-list').innerHTML = stats.join('');
+}
+
+function initMap() {
+  mapData = [];
+  discovered = [];
+  towns = [];
+  chests = [];
+  for (let y = 0; y < mapSize; ++y) {
+    let row = [];
+    let drow = [];
+    for (let x = 0; x < mapSize; ++x) {
+      // Assign random area name to each cell
+      let areaIdx = Math.floor(Math.random() * areaNames.length);
+      row.push({ type: "area", name: areaNames[areaIdx] });
+      drow.push(false);
+    }
+    mapData.push(row);
+    discovered.push(drow);
+  }
+  // Place main town in center
+  let mid = Math.floor(mapSize/2);
+  mapData[mid][mid] = { type: "central-town", name: "Central Town" };
+  discovered[mid][mid] = true;
+  towns.push({ x: mid, y: mid, name: "Central Town", central: true });
+  // Place 10 more towns randomly
+  let townNames = [
+    "Oakvale", "Riverside", "Stonehill", "Windmere", "Goldport", "Ironforge", "Mistwood", "Sunvale", "Frostholm", "Shadowfen"
+  ];
+  for (let i = 0; i < 10; ++i) {
+    let tx, ty;
+    do {
+      tx = Math.floor(Math.random()*mapSize);
+      ty = Math.floor(Math.random()*mapSize);
+    } while ((mapData[ty][tx].type !== "area") || (Math.abs(tx-mid)+Math.abs(ty-mid)<2));
+    mapData[ty][tx] = { type: "town", name: townNames[i] };
+    towns.push({ x: tx, y: ty, name: townNames[i], central: false });
+  }
+  // Place 8 chests randomly
+  for (let i = 0; i < 8; ++i) {
+    let cx, cy;
+    do {
+      cx = Math.floor(Math.random()*mapSize);
+      cy = Math.floor(Math.random()*mapSize);
+    } while (mapData[cy][cx].type !== "area");
+    mapData[cy][cx] = { type: "chest", name: "Chest" };
+    chests.push({ x: cx, y: cy });
+  }
+}
+function renderMap() {
+  const map = document.getElementById('game-map');
+  map.innerHTML = "";
+  for (let y = 0; y < mapSize; ++y) {
+    for (let x = 0; x < mapSize; ++x) {
+      let cellClass = "map-cell";
+      let label = "";
+      let cell = mapData[y][x];
+      // Player
+      if (x === playerPosition.x && y === playerPosition.y) {
+        cellClass += " player";
+      }
+      // Central Town
+      if (cell.type === "central-town") {
+        cellClass += " central-town";
+        label = "C";
+      }
+      // Other Towns
+      else if (cell.type === "town") {
+        cellClass += " town";
+        if (visitedTowns[cell.name]) {
+          label = "✔";
+        } else {
+          label = "T";
+        }
+      }
+      // Chest
+      else if (cell.type === "chest") {
+        cellClass += " chest";
+        label = "💰";
+      }
+      // Area
+      else if (cell.type === "area") {
+        if (discovered[y][x]) {
+          cellClass += " discovered";
+          label = cell.name[0];
+        } else {
+          cellClass += " area";
+          label = cell.name[0];
+        }
+      }
+      // Discovered
+      else if (cell.type === "discovered") {
+        cellClass += " discovered";
+        label = "";
+      }
+      // Undiscovered
+      if (!discovered[y][x] && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
+        cellClass += " undiscovered";
+        label = "";
+      }
+      // Show player icon
+      if (x === playerPosition.x && y === playerPosition.y) {
+        label = "🧑";
+      }
+      map.innerHTML += `<div class="${cellClass}" data-x="${x}" data-y="${y}" onclick="mapCellClick(${x},${y})" title="${cell.type === 'area' || cell.type === 'discovered' ? cell.name : cell.name || ''}">${label}</div>`;
+    }
+  }
+  let areaLabel = "";
+  let cell = mapData[playerPosition.y][playerPosition.x];
+  if (cell.type === "central-town") areaLabel = "Area: Central Town";
+  else if (cell.type === "town") areaLabel = "Area: " + cell.name;
+  else if (cell.type === "chest") areaLabel = "Area: Chest";
+  else if (!discovered[playerPosition.y][playerPosition.x]) areaLabel = "Area: Not Discovered";
+  else areaLabel = "Area: " + (cell.name || "Discovered");
+  document.getElementById("map-area-label").textContent = areaLabel;
+}
+function mapCellClick(x, y) {
+  // If player is on a chest, allow to open
+  if (x === playerPosition.x && y === playerPosition.y && mapData[y][x].type === "chest") {
+    openChest();
+  }
+}
+function movePlayer(dx,dy) {
+  if (inCombat || chestOpen) {
+    logMsg('You cannot move while fighting or opening a chest!');
+    return;
+  }
+  let nx = Math.max(0, Math.min(mapSize-1, playerPosition.x+dx));
+  let ny = Math.max(0, Math.min(mapSize-1, playerPosition.y+dy));
+  playerPosition.x = nx;
+  playerPosition.y = ny;
+  discovered[ny][nx] = true;
+  renderMap();
+  let cell = mapData[ny][nx];
+  if (cell.type === "central-town") {
+    logMsg(`Arrived at <b>Central Town</b>.`);
+  } else if (cell.type === "town") {
+    showTownPopup(cell.name);
+    logMsg(`Arrived at town: <b>${cell.name}</b>.`);
+    return; // Wait for popup interaction
+  } else if (cell.type === "chest") {
+    logMsg("You found a chest!");
+    openChest();
+    return;
+  } else if (!discovered[ny][nx]) {
+    logMsg("You entered a not discovered area.");
+  } else {
+    logMsg("You entered: <b>" + (cell.name || "a discovered area") + "</b>.");
+  }
+  // Random town events
+  if (cell.type === "town" && Math.random() < 0.5) {
+    triggerRandomTownEvent();
+  }
+  // Random area events
+  if (cell.type === "area" && discovered[ny][nx] && Math.random() < 0.15) {
+    triggerRandomAreaEvent();
+  }
+  if (Math.random() < 0.18 && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
+    setTimeout(showEnemy, 350);
+  }
+}
+function startExplore() {
+  if (inCombat || chestOpen) {
+    logMsg("Finish your battle or chest first!");
+    return;
+  }
+  document.getElementById('direction-select-bar').classList.add('active');
+}
+function chooseExploreDir(dx, dy) {
+  document.getElementById('direction-select-bar').classList.remove('active');
+  exploreDir = {dx, dy};
+  doExplore();
+}
+function doExplore() {
+  if (!exploreDir) return;
+  let nx = Math.max(0, Math.min(mapSize-1, playerPosition.x+exploreDir.dx));
+  let ny = Math.max(0, Math.min(mapSize-1, playerPosition.y+exploreDir.dy));
+  playerPosition.x = nx;
+  playerPosition.y = ny;
+  discovered[ny][nx] = true;
+  renderMap();
+  let cell = mapData[ny][nx];
+  if (cell.type === "central-town") {
+    logMsg(`Arrived at <b>Central Town</b>.`);
+  } else if (cell.type === "town") {
+    showTownPopup(cell.name);
+    logMsg(`Arrived at town: <b>${cell.name}</b>.`);
+    exploreDir = null;
+    return; // Wait for popup interaction
+  } else if (cell.type === "chest") {
+    logMsg("You found a chest!");
+    openChest();
+    return;
+  } else if (!discovered[ny][nx]) {
+    logMsg("You entered a not discovered area.");
+  } else {
+    logMsg("You entered: <b>" + (cell.name || "a discovered area") + "</b>.");
+  }
+  // Random town events
+  if (cell.type === "town" && Math.random() < 0.5) {
+    triggerRandomTownEvent();
+  }
+  // Random area events
+  if (cell.type === "area" && discovered[ny][nx] && Math.random() < 0.15) {
+    triggerRandomAreaEvent();
+  }
+  if (Math.random() < 0.22 && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
+    setTimeout(showEnemy, 350);
+  }
+  exploreDir = null;
+}
+// --- Add this after your renderDerivedStats function ---
+function updateAllStats() {
+  renderPlayerStats();
+  renderDerivedStats();
+  renderEquipment();
+}
+
+// --- Replace all calls to renderPlayerStats(), renderDerivedStats(), or renderEquipment() after stat changes with updateAllStats() ---
+// For example, in equipItem, equipBagItem, useItem, addItem, handleEquipSlot, etc.
+// Example for equipItem:
+function equipItem(idx) {
+  let item = player.inventory[idx];
+  let slot = item.type;
+  if (!isEquipable(item)) {
+    logMsg(`Cannot equip ${item.name}.`);
+    return;
+  }
+  let old = player.equipment[slot];
+  if (old) player.bag.push(old);
+  player.equipment[slot] = item;
+  player.inventory.splice(idx, 1);
+  logMsg(`Equipped ${item.name}.`);
+  updateAllStats();
+  renderBagInv();
+}
+function renderEquipment() {
+  const eqLeft = document.getElementById('equipment-slots-left');
+  const eqRight = document.getElementById('equipment-slots-right');
+  eqLeft.innerHTML = "";
+  eqRight.innerHTML = "";
+  equipmentOrderLeft.forEach((slotData) => {
+    const slot = slotData.slot;
+    const eq = player.equipment[slot];
+    eqLeft.innerHTML += `
+      <div class="equip-slot" onclick="handleEquipSlot('${slot}')" title="${slotData.label}">
+        <b>${slotData.label}:</b> <span class="item-name" style="max-width:70px;display:inline-block;vertical-align:middle;">${eq ? eq.name : "<em>none</em>"}</span>
+        <div class="slot-tooltip">${slotData.label}<br>
+          ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
+          ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
+        </div>
+      </div>
+    `;
+  });
+  equipmentOrderRight.forEach((slotData) => {
+    const slot = slotData.slot;
+    const eq = player.equipment[slot];
+    eqRight.innerHTML += `
+      <div class="equip-slot" onclick="handleEquipSlot('${slot}')" title="${slotData.label}">
+        <b>${slotData.label}:</b> <span class="item-name" style="max-width:70px;display:inline-block;vertical-align:middle;">${eq ? eq.name : "<em>none</em>"}</span>
+        <div class="slot-tooltip">${slotData.label}<br>
+          ${eq ? eq.name : "<em>none</em>"}
+          ${eq && eq.attackPower ? `<br>ATK: <b>+${eq.attackPower}</b>` : ""}
+          ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
+          ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
+        </div>
+      </div>
+    `;
+  });
+  document.getElementById('equipment-legend').textContent = "Click a slot to unequip";
+}
+function handleEquipSlot(slot) {
+  if (!player.equipment[slot]) return;
+  player.bag.push(player.equipment[slot]);
+  logMsg(`Unequipped ${player.equipment[slot].name} from ${slot}.`);
+  player.equipment[slot] = null;
+  renderEquipment(); renderBagInv(); renderDerivedStats();
+}
+function switchBagInv(tab) {
+  baginvTab = tab;
+  document.getElementById('tab-inventory').classList.toggle('active', tab === "inventory");
+  document.getElementById('tab-bag').classList.toggle('active', tab === "bag");
+  renderBagInv();
+}
+function renderBagInv() {
+  const content = document.getElementById('baginv-content');
+  content.innerHTML = "";
+  let itemsArr = baginvTab === "inventory" ? player.inventory : player.bag;
+  if (searchTerm) {
+    itemsArr = itemsArr.filter(i => i.name.toLowerCase().includes(searchTerm));
+  }
+  if (!itemsArr.length) {
+    content.innerHTML = `<div style="color:#9c9c9c;text-align:center;width:100%;padding:29px 0;">No items</div>`;
+    return;
+  }
+  if (baginvTab === "inventory") {
+    itemsArr.forEach((item, idx) => {
+      content.innerHTML += `
+        <div class="item-card">
+          ${item.type==="material" ? `<button class="bag-x-remove-btn" onclick="removeItem(${idx});event.stopPropagation()" title="Remove">&times;</button>` : ""}
+          <div class="item-name">${item.name}${item.count > 1 ? ` (x${item.count})` : ""}</div>
+          <div class="item-actions">
+            ${item.type==="potion"||item.type==="consumable" ? `<button class="item-action-btn" onclick="useItem(${idx});event.stopPropagation()">Use</button>` : ""}
+            ${isEquipable(item) ? `<button class="item-action-btn" onclick="equipItem(${idx});event.stopPropagation()">Equip</button>` : ""}
+          </div>
+        </div>
+      `;
+    });
+  } else {
+    itemsArr.forEach((item, idx) => {
+      content.innerHTML += `
+        <div class="item-card">
+          <button class="bag-x-remove-btn" onclick="removeItem(${idx});event.stopPropagation()" title="Remove">&times;</button>
+          <div class="item-name">${item.name}${item.count > 1 ? ` (x${item.count})` : ""}</div>
+          <button class="bag-equip-btn" onclick="equipBagItem(${idx});event.stopPropagation()">Equip</button>
+        </div>
+      `;
+    });
+  }
+}
+function isHealingItem(item) {
+  return typeof item.heal === "number" && item.heal > 0;
+}
+function isStatItem(item) {
+  return (
+    (typeof item.attackPower === "number" && item.attackPower > 0) ||
+    (typeof item.defense === "number" && item.defense > 0) ||
+    (typeof item.health === "number" && item.health > 0) ||
+    ["weapon","armor","shield","ring","arrows","helmet","cloak","amulet","gloves","boots"].includes(item.type)
+  );
+}
+function isEquipable(item) {
+  return ["weapon","armor","shield","ring","arrows","helmet","cloak","amulet","gloves","boots"].includes(item.type);
+}
+function addItem(item) {
+  // If gloves, boots, helmet, cloak, ring: assign random health/defense
+  if (item.type === "gloves") {
+    item.defense = 15;
+    item.health = randomStat(30,100);
+  }
+  if (item.type === "boots") {
+    item.defense = 20;
+    item.health = randomStat(20,100);
+  }
+  if (item.type === "helmet") {
+    item.defense = 25;
+    item.health = randomStat(30,100);
+  }
+  if (item.type === "cloak") {
+    item.defense = 35;
+    item.health = randomStat(25,100);
+  }
+  if (item.type === "ring") {
+   
+    item.attackPower = item.attackPower || 2;
+    item.health = randomStat(10,100);
+  }
+
+ 
+
+  // Helper to stack items
+  function tryStack(arr, item) {
+
+
+
+    for (let i = 0; i < arr.length; i++) {
+      let it = arr[i];
+      // Stack arrows by type only
+      if (item.type === "arrows" && it.type === "arrows") {
+        it.count = (it.count || 1) + (item.count || 1);
+        return true;
+      }
+      // Stack other items by name, type, and key stats
+      if (
+        it.name === item.name &&
+        it.type === item.type &&
+        (it.attackPower === item.attackPower || (!it.attackPower && !item.attackPower)) &&
+        (it.defense === item.defense || (!it.defense && !item.defense)) &&
+        (it.heal === item.heal || (!it.heal && !item.heal)) &&
+        (it.health === item.health || (!it.health && !item.health))
+      ) {
+        it.count = (it.count || 1) + (item.count || 1);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Arrows always go to bag and stack
+  if (item.type === "arrows") {
+    if (!tryStack(player.bag, item)) {
+      player.bag.push({ ...item, count: item.count || 1 });
+    }
+    logMsg(`Added ${item.name}${item.count > 1 ? ` (x${item.count})` : ""} to Bag.`);
+  } else if (item.type === "material") {
+    if (!tryStack(player.inventory, item)) {
+      player.inventory.push({ ...item, count: item.count || 1 });
+    }
+    logMsg(`Added ${item.name}${item.count > 1 ? ` (x${item.count})` : ""} to Inventory.`);
+  } else if (isHealingItem(item)) {
+    if (!tryStack(player.inventory, item)) {
+      player.inventory.push({ ...item, count: item.count || 1 });
+    }
+    logMsg(`Added ${item.name}${item.count > 1 ? ` (x${item.count})` : ""} to Inventory.`);
+  } else if (isStatItem(item)) {
+    if (!tryStack(player.bag, item)) {
+      player.bag.push({ ...item, count: item.count || 1 });
+    }
+    logMsg(`Added ${item.name}${item.count > 1 ? ` (x${item.count})` : ""} to Bag.`);
+  } else {
+
+    if (!tryStack(player.inventory, item)) {
+      player.inventory.push({ ...item, count: item.count || 1 });
+    }
+    logMsg(`Added ${item.name}${item.count > 1 ? ` (x${item.count})` : ""} to Inventory.`);
+  }
+  renderBagInv();
+}
+function selectBagInvItem(idx) {}
+function useItem(idx) {
+  let itemsArr = baginvTab === "inventory" ? player.inventory : player.bag;
+  const item = itemsArr[idx];
+  if (item.type === "potion" || item.type === "consumable") {
+    // --- PATCH: allow healing up to max health if maxHealth > 100, else up to 100 ---
+    let maxHeal = getTotalMaxHealth();
+    if (maxHeal <= 100) maxHeal = 100;
+    if (player.health < maxHeal) {
+      player.health = Math.min(maxHeal, player.health + (item.heal||0));
+      logMsg(`Used ${item.name}, healed for ${item.heal}.`);
+      itemsArr.splice(idx, 1);
+    } else {
+      logMsg(`${item.name} can't be used at full health.`);
+    }
+  } else {
+    logMsg(`You can't use ${item.name} directly.`);
+  }
+  updateAllStats();
+  renderBagInv();
+}
+function equipItem(idx) {
+  let item = player.inventory[idx];
+  let slot = item.type;
+  if (!isEquipable(item)) {
+    logMsg(`Cannot equip ${item.name}.`);
+    return;
+  }
+  let old = player.equipment[slot];
+  if (old) player.bag.push(old);
+  player.equipment[slot] = item;
+  player.inventory.splice(idx, 1);
+  logMsg(`Equipped ${item.name}.`);
+  updateAllStats();
+  renderBagInv();
+}
+function removeItem(idx) {
+  let itemsArr = baginvTab === "inventory" ? player.inventory : player.bag;
+  let item = itemsArr.splice(idx, 1)[0];
+  logMsg(`Removed ${item.name}.`);
+  renderBagInv();
+}
+function equipBagItem(idx) {
+  let item = player.bag[idx];
+  let slot = item.type;
+  let old = player.equipment[slot];
+  if (old) player.bag.push(old);
+  player.equipment[slot] = item;
+  player.bag.splice(idx, 1);
+  logMsg(`Equipped ${item.name}.`);
+  updateAllStats();
+  renderBagInv();
+}
+function getRandomEnemy() {
+  let e = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+  return {
+    name: e.name,
+    health: e.maxHealth,
+    maxHealth: e.maxHealth,
+    minAttack: e.minAttack,
+    maxAttack: e.maxAttack,
+    xp: e.xp
+  };
+}
+function showEnemy() {
+  currentEnemy = getRandomEnemy();
+  inCombat = true;
+  renderEnemyEncounter();
+  logMsg(`A wild <b>${currentEnemy.name}</b> appears!`);
+}
+function renderEnemyEncounter() {
+  const enemyDiv = document.getElementById('enemy-encounter');
+  if (!currentEnemy) {
+    enemyDiv.style.display = "none";
+    return;
+  }
+  enemyDiv.style.display = "flex";
+  const percent = Math.max(0, 100 * currentEnemy.health/currentEnemy.maxHealth);
+  document.getElementById('enemy-hp-bar-inner').style.width = percent + "%";
+  document.getElementById('enemy-hp-bar-text').textContent = `${currentEnemy.health}/${currentEnemy.maxHealth}`;
+  const imageBox = document.getElementById('enemy-image');
+  imageBox.innerHTML = `${currentEnemy.name}`;
+  document.getElementById('enemy-name-label').textContent = currentEnemy.name;
+}
+function clearEnemy() {
+  currentEnemy = null;
+  inCombat = false;
+  renderEnemyEncounter();
+}
+function showHitsplat(damage) {
+  const imageBox = document.getElementById('enemy-image');
+  const splat = document.createElement('div');
+  splat.className = "hitsplat";
+  splat.textContent = `-${damage}`;
+  imageBox.appendChild(splat);
+  setTimeout(()=>{ if (imageBox.contains(splat)) imageBox.removeChild(splat); }, 850);
+}
+function attackEnemy() {
+  if (!currentEnemy || !inCombat) {
+    logMsg("No enemy to attack.");
+    return;
+  }
+  let pAtk = (player.equipment.weapon ? player.equipment.weapon.attackPower||8 : 6)
+      + (player.equipment.ring ? player.equipment.ring.attackPower||0 : 0);
+  let hit = 0;
+  if(player.equipment.weapon && (player.equipment.weapon.name && player.equipment.weapon.name.toLowerCase().includes('bow') || player.equipment.weapon.isBow)) {
+    // Bow logic
+    if(pAtk < 25) hit = randomStat(1,50);
+    else if(pAtk >= 50) hit = randomStat(1,100);
+    else hit = randomStat(20,75);
+  } else {
+    // Weapon logic
+    if(pAtk < 25) hit = randomStat(1,50);
+    else if(pAtk >= 50) hit = randomStat(1,100);
+    else hit = randomStat(20,75);
+  }
+  currentEnemy.health = Math.max(0, currentEnemy.health - hit);
+  showHitsplat(hit);
+  logMsg(`You hit the <b>${currentEnemy.name}</b> for <b>${hit}</b>!`);
+  renderEnemyEncounter();
+  if (currentEnemy.health <= 0) {
+    let goldDrop = Math.floor(Math.random() * 51);
+    player.gold += goldDrop;
+    let randomItem = JSON.parse(JSON.stringify(items[Math.floor(Math.random() * items.length)]));
+    addItem(randomItem);
+    let goldMsg = goldDrop > 0 ? ` <span style=\"color:gold;\">+${goldDrop} Gold</span>` : '';
+    logMsg(`<span style=\"color:#90ee90\"><b>You defeated the ${currentEnemy.name}!</b></span> +${currentEnemy.xp} XP${goldMsg} and found ${randomItem.name}`);
+    player.experience += currentEnemy.xp;
+    checkLevelUp();
+    clearEnemy();
+    renderPlayerStats();
+    return;
+  }
+  setTimeout(()=>{ enemyAttack(); }, 700);
+}
+function enemyAttack() {
+  if (!currentEnemy || !inCombat) return;
+  let pDef = (player.equipment.armor ? player.equipment.armor.defense||0 : 0)
+    + (player.equipment.helmet ? player.equipment.helmet.defense||0 : 0)
+    + (player.equipment.shield ? player.equipment.shield.defense||0 : 0)
+    + (player.equipment.cloak ? player.equipment.cloak.defense||0 : 0)
+    + (player.equipment.boots ? player.equipment.boots.defense||0 : 0)
+    + (player.equipment.amulet ? player.equipment.amulet.defense||0 : 0)
+    + (player.equipment.gloves ? player.equipment.gloves.defense||0 : 0);
+  let min = currentEnemy.minAttack;
+  let max = currentEnemy.maxAttack;
+  let eHit = Math.max(0, Math.floor(min + Math.random()*(max-min+1)) - Math.floor(pDef/3));
+  player.health = Math.max(0, player.health - eHit);
+  logMsg(`<span style="color:#f66">The ${currentEnemy.name} hits you for <b>${eHit}</b>!</span>`);
+  renderPlayerStats();
+  if (player.health <= 0) {
+    logMsg(`<span style="color:#f44;font-weight:bold;">You died! Respawning at town...</span>`);
+    respawnPlayer();
+    clearEnemy();
+  }
+}
+function runFromEnemy() {
+  if (!currentEnemy || !inCombat) return;
+  if (Math.random() < 0.6) {
+    logMsg(`<span style="color:#9cf">You ran away from the ${currentEnemy.name}!</span>`);
+    clearEnemy();
+  } else {
+    logMsg(`<span style="color:#f77">You failed to run away!</span>`);
+    setTimeout(enemyAttack, 500);
+  }
+}
+function openChest() {
+  chestOpen = true;
+  let reward = Math.floor(Math.random()*500)+1;
+  chestReward = reward;
+  player.gold += reward;
+  document.getElementById('chest-reward').textContent = `You found ${reward} gold!`;
+  document.getElementById('chest-encounter').style.display = "flex";
+  // Remove chest from map
+  mapData[playerPosition.y][playerPosition.x] = { type: "discovered", name: "" };
+  renderMap();
+  renderPlayerStats();
+}
+function closeChest() {
+  chestOpen = false;
+  document.getElementById('chest-encounter').style.display = "none";
+}
+function openBank() {
+  document.getElementById('bank-modal-bg').style.display = 'flex';
+  renderBank();
+}
+function closeBank() {
+  document.getElementById('bank-modal-bg').style.display = 'none';
+}
+function renderBank() {
+  const bankList = document.getElementById('bank-list');
+  const invList = document.getElementById('bank-inv-list');
+  bankList.innerHTML = "";
+  invList.innerHTML = "";
+  if (!player.bank.length) bankList.innerHTML = "<div id='bank-empty-msg'>No items in bank.</div>";
+  player.bank.forEach((item, idx) => {
+    bankList.innerHTML += `
+      <div class="bank-item-card">
+        <span>${item.name}</span>
+        <button class="bank-action-btn" onclick="removeFromBank(${idx})">Withdraw</button>
+      </div>
+    `;
+  });
+  let invItems = [...player.inventory, ...player.bag];
+  if (!invItems.length) invList.innerHTML = "<div id='bank-empty-msg'>No items to deposit.</div>";
+  invItems.forEach((item, idx) => {
+    invList.innerHTML += `
+      <div class="bank-item-card">
+        <span>${item.name}</span>
+        <button class="bank-action-btn" onclick="addToBank(${idx})">Deposit</button>
+      </div>
+    `;
+  });
+}
+function addToBank(idx) {
+  let itemsArr = [...player.inventory, ...player.bag];
+  let item = itemsArr[idx];
+  let invIdx = player.inventory.findIndex(i => i === item);
+  if (invIdx !== -1) player.inventory.splice(invIdx, 1);
+  else player.bag.splice(player.bag.findIndex(i => i === item), 1);
+  player.bank.push(item);
+  logMsg(`Deposited ${item.name} to the bank.`);
+  renderBagInv(); renderBank();
+}
+function removeFromBank(idx) {
+  let item = player.bank.splice(idx, 1)[0];
+  if (isEquipable(item)) player.bag.push(item);
+  else player.inventory.push(item);
+  logMsg(`Withdrew ${item.name} from the bank.`);
+  renderBagInv(); renderBank();
+}
+function explore() {
+  // Deprecated, use startExplore
+  startExplore();
+}
+function visitShop() { logMsg("Opening shop... (implement backend)"); }
+function showCommands() {
+  logMsg(`Commands: /explore, /attack, /shop, /bank, /status, /inventory, /bag, /buy, /sell, /equipment, /unequip`);
+}
+function searchItem() {
+  searchTerm = document.getElementById('item-search').value.toLowerCase();
+  renderBagInv();
+}
+function logMsg(msg) {
+  let logDiv = document.getElementById('game-log');
+  logDiv.innerHTML += `<div>${msg}</div>`;
+  logDiv.scrollTop = logDiv.scrollHeight;
+}
+function checkLevelUp() {
+  let nextLvXp = 60 + (player.level-1)*45;
+  if (player.experience >= nextLvXp) {
+    player.level += 1;
+    player.maxHealth += 18;
+    player.health = player.maxHealth;
+    player.experience -= nextLvXp;
+    logMsg(`<span style="color:gold;font-weight:bold;">You leveled up to Level ${player.level}! Max HP increased.</span>`);
+    updateAllStats();
+  }
+}
+function respawnPlayer() {
+  player.health = Math.floor(player.maxHealth * 0.7);
+  playerPosition = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
+  discovered[playerPosition.y][playerPosition.x] = true;
+  renderPlayerStats();
+  renderMap();
+}
+function renderDerivedStats() {
+  let atk = getTotalAttack();
+  let def = getTotalDefense();
+  let hp = getTotalMaxHealth();
+  let stats = [
+    `<li><span class="derived-label">Attack:</span> ${atk}</li>`,
+    `<li><span class="derived-label">Defense:</span> ${def}</li>`,
+    `<li><span class="derived-label">Max Health:</span> ${hp}</li>`
+  ];
+  document.getElementById('derived-stats-list').innerHTML = stats.join('');
+}
+// --- TOWN POPUP LOGIC ---
+if (!document.getElementById('town-popup')) {
+  const townPopup = document.createElement('div');
+  townPopup.id = 'town-popup';
+  townPopup.style = 'display:none;position:fixed;z-index:4000;top:0;left:0;width:100vw;height:100vh;background:#191a1e99;align-items:center;justify-content:center;';
+  townPopup.innerHTML = `
+    <div style="background:#23252a;padding:32px 38px 24px 38px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;">
+      <div id="town-popup-title" style="color:#ffba3a;font-size:1.3em;margin-bottom:18px;"></div>
+      <div style="margin-bottom:18px;">Do you wish to visit this town?</div>
+      <div style="display:flex;gap:18px;">
+        <button id="town-popup-yes" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Yes</button>
+        <button id="town-popup-no" style="font-size:1.1em;font-weight:bold;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">No</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(townPopup);
+}
+if (!document.getElementById('special-seller-popup')) {
+  const sellerPopup = document.createElement('div');
+  sellerPopup.id = 'special-seller-popup';
+  sellerPopup.style = 'display:none;position:fixed;z-index:4100;top:0;left:0;width:100vw;height:100vh;background:#191a1e99;align-items:center;justify-content:center;';
+  sellerPopup.innerHTML = `
+    <div style="background:#23252a;padding:32px 38px 24px 38px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:340px;">
+      <div style="color:#ffba3a;font-size:1.3em;margin-bottom:18px;">Special Seller</div>
+      <div style="margin-bottom:18px;">Welcome, traveler! Here are my rare wares:</div>
+      <div id="special-seller-items" style="margin-bottom:18px;width:100%;"></div>
+      <button onclick="closeSpecialSeller()" style="font-size:1.1em;font-weight:bold;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Close</button>
+    </div>
+  `;
+  document.body.appendChild(sellerPopup);
+}
+let lastTownVisited = null;
+function showTownPopup(townName) {
+  lastTownVisited = townName;
+  document.getElementById('town-popup-title').textContent = `You arrived at ${townName}!`;
+  document.getElementById('town-popup').style.display = 'flex';
+}
+document.getElementById('town-popup-yes').onclick = function() {
+  document.getElementById('town-popup').style.display = 'none';
+  if (!visitedTowns[lastTownVisited]) {
+    showSpecialSeller();
+    visitedTowns[lastTownVisited] = true;
+    renderMap();
+  }
+};
+document.getElementById('town-popup-no').onclick = function() {
+  document.getElementById('town-popup').style.display = 'none';
+};
+// --- PATCH renderMap to show checkmark for visited towns ---
+const origRenderMap = renderMap;
+renderMap = function() {
+  const map = document.getElementById('game-map');
+  map.innerHTML = "";
+  for (let y = 0; y < mapSize; ++y) {
+    for (let x = 0; x < mapSize; ++x) {
+      let cellClass = "map-cell";
+      let label = "";
+      let cell = mapData[y][x];
+      // Player
+      if (x === playerPosition.x && y === playerPosition.y) {
+        cellClass += " player";
+      }
+      // Central Town
+      if (cell.type === "central-town") {
+        cellClass += " central-town";
+        label = "C";
+      }
+      // Other Towns
+      else if (cell.type === "town") {
+        cellClass += " town";
+        if (visitedTowns[cell.name]) {
+          label = "✔";
+        } else {
+          label = "T";
+        }
+      }
+      // Chest
+      else if (cell.type === "chest") {
+        cellClass += " chest";
+        label = "💰";
+      }
+      // Area
+      else if (cell.type === "area") {
+        if (discovered[y][x]) {
+          cellClass += " discovered";
+          label = cell.name[0];
+        } else {
+          cellClass += " area";
+          label = cell.name[0];
+        }
+      }
+      // Discovered
+      else if (cell.type === "discovered") {
+        cellClass += " discovered";
+        label = "";
+      }
+      // Undiscovered
+      if (!discovered[y][x] && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
+        cellClass += " undiscovered";
+        label = "";
+      }
+      // Show player icon
+      if (x === playerPosition.x && y === playerPosition.y) {
+        label = "🧑";
+      }
+      map.innerHTML += `<div class="${cellClass}" data-x="${x}" data-y="${y}" onclick="mapCellClick(${x},${y})" title="${cell.type === 'area' || cell.type === 'discovered' ? cell.name : cell.name || ''}">${label}</div>`;
+    }
+  }
+  let areaLabel = "";
+  let cell = mapData[playerPosition.y][playerPosition.x];
+  if (cell.type === "central-town") areaLabel = "Area: Central Town";
+  else if (cell.type === "town") areaLabel = "Area: " + cell.name;
+  else if (cell.type === "chest") areaLabel = "Area: Chest";
+  else if (!discovered[playerPosition.y][playerPosition.x]) areaLabel = "Area: Not Discovered";
+  else areaLabel = "Area: " + (cell.name || "Discovered");
+  document.getElementById("map-area-label").textContent = areaLabel;
+};
+function refreshShopItems() {
+  let shopItems = [];
+
+  // 2 random armors: DEF 20-125, price 50-1000 gold (higher DEF = higher price)
+  for (let i = 0; i < 2; i++) {
+    let def = Math.floor(Math.random() * 106) + 20; // 20-125
+    let price = Math.floor(50 + (def - 20) * 8); // 50-1000
+    shopItems.push({
+      name: `Armor (${def} DEF)`,
+      type: 'armor',
+      defense: def,
+      price: price,
+      description: `Protective armor.`
+    });
+  }
+
+  // 2 random weapons: ATK 10-100, price 30-500 gold (higher ATK = higher price)
+  for (let i = 0; i < 2; i++) {
+    let atk = Math.floor(Math.random() * 91) + 10; // 10-100
+    let price = Math.floor(30 + (atk - 10) * 5); // 30-500
+    shopItems.push({
+      name: `Weapon (${atk} ATK)`,
+      type: 'weapon',
+      attackPower: atk,
+      price: price,
+      description: `A sharp weapon.`
+    });
+  }
+
+  // 2 random bows: ATK 20-150, price 60-500 gold (higher ATK = higher price)
+  for (let i = 0; i < 2; i++) {
+    let batk = Math.floor(Math.random() * 131) + 20; // 20-150
+    let price = Math.floor(60 + (batk - 20) * 3.5); // 60-500
+    shopItems.push({
+      name: `Bow (${batk} ATK)`,
+      type: 'weapon',
+      attackPower: batk,
+      isBow: true,
+      price: price,
+      description: `A powerful bow.`
+    });
+  }
+
+  // 2 random potions: heal 20-100, price 10-250 gold (higher heal = higher price)
+  for (let i = 0; i < 2; i++) {
+    let heal = Math.floor(Math.random() * 81) + 20; // 20-100
+    let price = Math.floor(10 + (heal - 20) * 3); // 10-250
+    shopItems.push({
+      name: `Potion (+${heal} HP)`,
+      type: 'potion',
+      heal: heal,
+      price: price,
+      description: `Heals for ${heal} HP.`
+    });
+  }
+
+  // 2 arrows packs
+  for (let i = 0; i < 2; i++) {
+    shopItems.push({
+      name: 'Arrows (x100)',
+      type: 'arrows',
+      count: 100,
+      price: 15,
+      description: 'A pack of 100 arrows.'
+    });
+  }
+
+  // Shuffle and pick 10 for shop
+  shopItems = shopItems.sort(() => Math.random() - 0.5).slice(0, 10);
+
+  window._shopItems = shopItems;
+  renderShopItems();
+}
+function renderShopItems() {
+  const shopDiv = document.getElementById('shop-items-list');
+  if (!window._shopItems) return;
+  shopDiv.innerHTML = "";
+  window._shopItems.forEach((item, idx) => {
+    let stat = "";
+    if (item.attackPower) stat += ` ATK: <b>+${item.attackPower}</b>`;
+    if (item.defense) stat += ` DEF: <b>+${item.defense}</b>`;
+    if (item.heal) stat += ` HEAL: <b>+${item.heal}</b>`;
+    if (item.health) stat += ` HP: <b>+${item.health}</b>`;
+    shopDiv.innerHTML += `
+      <div style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <div><b>${item.name}</b>${stat}</div>
+        <div>
+          <span style="color:gold;font-weight:bold;">${item.price} Gold</span>
+          <button onclick="buyShopItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button>
+        </div>
+      </div>
+    `;
+  });
+}
+function buyShopItem(idx) {
+  let item = window._shopItems[idx];
+  if (player.gold < item.price) {
+    logMsg('Not enough gold!');
+    return;
+  }
+  player.gold -= item.price;
+  addItem(JSON.parse(JSON.stringify(item)));
+  logMsg(`Bought ${item.name} for ${item.price} gold from the Shop.`);
+  renderPlayerStats();
+  renderShopItems();
+}
+document.getElementById('refresh-shop-btn').onclick = refreshShopItems;
+refreshShopItems();
+
+// --- SPECIAL SELLER: Only once per town, mark with checkmark ---
+let visitedTowns = {};
+const origShowTownPopup = showTownPopup;
+showTownPopup = function(townName) {
+  lastTownVisited = townName;
+  document.getElementById('town-popup-title').textContent = `You arrived at ${townName}!`;
+  document.getElementById('town-popup').style.display = 'flex';
+};
+document.getElementById('town-popup-yes').onclick = function() {
+  document.getElementById('town-popup').style.display = 'none';
+  if (!visitedTowns[lastTownVisited]) {
+    showSpecialSeller();
+    visitedTowns[lastTownVisited] = true;
+    renderMap();
+  }
+};
+document.getElementById('town-popup-no').onclick = function() {
+  document.getElementById('town-popup').style.display = 'none';
+};
+// --- START GAME BUTTON LOGIC ---
+document.getElementById('username-submit').onclick = function() {
+  const input = document.getElementById('username-input');
+  const error = document.getElementById('username-error');
+  const val = input.value.trim();
+  if (!val) {
+    error.textContent = 'Please enter a username.';
+    error.style.display = 'block';
+    return;
+  }
+  player.name = val;
+  error.style.display = 'none';
+  document.getElementById('username-overlay').style.display = 'none';
+
+  // Initialize map and player position before rendering
+  initMap();
+  playerPosition = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
+  discovered[playerPosition.y][playerPosition.x] = true;
+
+  renderPlayerStats();
+  renderDerivedStats();
+  renderEquipment();
+  renderBagInv();
+  renderMap();
+
+  // Play music if available
+  const music = document.getElementById('username-music');
+  if (music) {
+    music.currentTime = 0;
+    music.play().catch(() => {
+      document.body.addEventListener('click', () => music.play(), { once: true });
+    });
+  }
+};
+// Allow Enter key to submit
+document.getElementById('username-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('username-submit').click();
+});
+function showSpecialSeller() {
+  // Generate 6 random high-stat items under 500 gold
+  let specialItems = [];
+  for (let i = 0; i < 6; ++i) {
+    let type = ["armor", "weapon", "potion", "helmet", "boots", "shield", "cloak", "amulet", "ring", "gloves"][Math.floor(Math.random()*10)];
+    let item = { price: Math.floor(Math.random()*200)+250 };
+    if (type === "armor") {
+      item.name = "Special Armor";
+      item.type = "armor";
+      item.defense = Math.floor(Math.random()*30)+50;
+    } else if (type === "weapon") {
+      item.name = "Special Sword";
+      item.type = "weapon";
+      item.attackPower = Math.floor(Math.random()*20)+45;
+    } else if (type === "potion") {
+      item.name = "Mega Potion";
+      item.type = "potion";
+      item.heal = Math.floor(Math.random()*50)+100;
+    } else if (type === "helmet") {
+      item.name = "Special Helmet";
+      item.type = "helmet";
+      item.defense = Math.floor(Math.random()*15)+25;
+      item.health = Math.floor(Math.random()*30)+25;
+    } else if (type === "boots") {
+      item.name = "Special Boots";
+      item.type = "boots";
+      item.defense = Math.floor(Math.random()*10)+20;
+      item.health = Math.floor(Math.random()*20)+20;
+    } else if (type === "shield") {
+      item.name = "Special Shield";
+      item.type = "shield";
+      item.defense = Math.floor(Math.random()*20)+30;
+    } else if (type === "cloak") {
+      item.name = "Special Cloak";
+      item.type = "cloak";
+      item.defense = Math.floor(Math.random()*15)+30;
+      item.health = Math.floor(Math.random()*20)+20;
+    } else if (type === "amulet") {
+      item.name = "Special Amulet";
+      item.type = "amulet";
+      item.defense = Math.floor(Math.random()*10)+15;
+    } else if (type === "ring") {
+      item.name = "Special Ring";
+      item.type = "ring";
+      item.attackPower = Math.floor(Math.random()*5)+5;
+      item.health = Math.floor(Math.random()*20)+10;
+    } else if (type === "gloves") {
+      item.name = "Special Gloves";
+      item.type = "gloves";
+      item.defense = Math.floor(Math.random()*10)+15;
+      item.health = Math.floor(Math.random()*20)+10;
+    }
+    item.price = Math.min(item.price, 499);
+    specialItems.push(item);
+  }
+  let html = '';
+  specialItems.forEach((item, idx) => {
+    let stat = '';
+    if(item.defense) stat += ` DEF: <b>+${item.defense}</b>`;
+    if(item.attackPower) stat += ` ATK: <b>+${item.attackPower}</b>`;
+    if(item.heal) stat += ` HEAL: <b>+${item.heal}</b>`;
+    if(item.health) stat += ` HP: <b>+${item.health}</b>`;
+    html += `<div style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+      <div><b>${item.name}</b>${stat}</div>
+      <div><span style="color:gold;font-weight:bold;">${item.price} Gold</span> <button onclick="buySpecialSellerItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button></div>
+    </div>`;
+  });
+  window._specialSellerItems = specialItems;
+  document.getElementById('special-seller-items').innerHTML = html;
+  document.getElementById('special-seller-popup').style.display = 'flex';
+}
+function closeSpecialSeller() {
+  document.getElementById('special-seller-popup').style.display = 'none';
+}
+function buySpecialSellerItem(itemIndex) {
+  let item = window._specialSellerItems[itemIndex];
+  if (!item) return;
+  if (player.gold < item.price) {
+    logMsg('Not enough gold!');
+    return;
+  }
+  player.gold -= item.price;
+  addItem(JSON.parse(JSON.stringify(item)));
+  logMsg(`Bought ${item.name} for ${item.price} gold from the Special Seller.`);
+  renderPlayerStats();
+  closeSpecialSeller();
+}
+// --- Save/Load Game as JSON File ---
+// Save button logic: only save UI/player state, not map
+document.getElementById('main-save-btn').onclick = function() {
+  // Only save player, visitedTowns, playerPosition, inventory, bag, equipment, bank, gold, experience, level, health, bankGold
+  const saveData = {
+    player: {
+      name: player.name,
+      health: player.health,
+      maxHealth: player.maxHealth,
+      gold: player.gold,
+      experience: player.experience,
+      level: player.level,
+      bankGold: player.bankGold,
+      inventory: player.inventory,
+      bag: player.bag,
+      equipment: player.equipment,
+      bank: player.bank
+    },
+    visitedTowns: {...visitedTowns},
+    playerPosition: {...playerPosition}
+    // Exclude mapData, discovered, towns, chests
+  };
+  const blob = new Blob([JSON.stringify(saveData, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().replace(/[:.]/g, '-');
+  a.href = url;
+  a.download = `game-ui-save-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('Save data saved!');
+};
+
+// Add a file input for loading (used by overlay Load button)
+if (!document.getElementById('main-load-input')) {
+  const loadInput = document.createElement('input');
+  loadInput.type = 'file';
+  loadInput.accept = '.json,application/json';
+  loadInput.style.display = 'none';
+  loadInput.id = 'main-load-input';
+  document.body.appendChild(loadInput);
+
+  loadInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const saveData = JSON.parse(evt.target.result);
+        if (saveData.player && saveData.visitedTowns && saveData.playerPosition) {
+          // Defensive deep assignment to avoid undefined errors
+          initMap(); // Ensure mapData, discovered, towns, chests are initialized
+          player.name = saveData.player.name || "Hero";
+          player.health = typeof saveData.player.health === "number" ? saveData.player.health : 100;
+          player.maxHealth = typeof saveData.player.maxHealth === "number" ? saveData.player.maxHealth : 100;
+          player.gold = typeof saveData.player.gold === "number" ? saveData.player.gold : 0;
+          player.experience = typeof saveData.player.experience === "number" ? saveData.player.experience : 0;
+          player.level = typeof saveData.player.level === "number" ? saveData.player.level : 1;
+          player.bankGold = typeof saveData.player.bankGold === "number" ? saveData.player.bankGold : 0;
+          player.inventory = Array.isArray(saveData.player.inventory) ? JSON.parse(JSON.stringify(saveData.player.inventory)) : [];
+          player.bag = Array.isArray(saveData.player.bag) ? JSON.parse(JSON.stringify(saveData.player.bag)) : [];
+          player.equipment = typeof saveData.player.equipment === "object" && saveData.player.equipment !== null
+            ? JSON.parse(JSON.stringify(saveData.player.equipment))
+            : { helmet: null, weapon: null, armor: null, ring: null, arrows: null, cloak: null, shield: null, amulet: null, gloves: null, boots: null };
+          player.bank = Array.isArray(saveData.player.bank) ? JSON.parse(JSON.stringify(saveData.player.bank)) : [];
+          Object.keys(visitedTowns).forEach(k => delete visitedTowns[k]);
+          Object.assign(visitedTowns, saveData.visitedTowns);
+          playerPosition.x = typeof saveData.playerPosition.x === "number" ? saveData.playerPosition.x : Math.floor(mapSize/2);
+          playerPosition.y = typeof saveData.playerPosition.y === "number" ? saveData.playerPosition.y : Math.floor(mapSize/2);
+          // Ensure discovered array is properly sized
+          if (!Array.isArray(discovered) || discovered.length !== mapSize) {
+            discovered = [];
+            for (let y = 0; y < mapSize; ++y) {
+              let drow = [];
+              for (let x = 0; x < mapSize; ++x) drow.push(false);
+              discovered.push(drow);
+            }
+          }
+          if (!Array.isArray(discovered[playerPosition.y])) {
+            discovered[playerPosition.y] = [];
+            for (let x = 0; x < mapSize; ++x) discovered[playerPosition.y][x] = false;
+          }
+          discovered[playerPosition.y][playerPosition.x] = true;
+          // Do not load mapData, discovered, towns, chests
+          renderPlayerStats();
+          renderDerivedStats();
+          renderEquipment();
+          renderBagInv();
+          renderMap();
+          alert('Game loaded from file!');
+          // Hide overlay if loading from overlay
+          if (document.getElementById('username-overlay').style.display !== 'none') {
+            document.getElementById('username-overlay').style.display = 'none';
+            // Also hide overlay load button after load
+            const overlayLoadBtn2 = document.getElementById('overlay-load-btn2');
+            if (overlayLoadBtn2) overlayLoadBtn2.style.display = 'none';
+          }
+        } else {
+          alert('Invalid save file.');
+        }
+      } catch (err) {
+        alert('Failed to load save: ' + err);
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so you can load the same file again if needed
+    e.target.value = '';
+  });
+}
+
+// Overlay Load UI in overlay, right below Stop Music
+if (document.getElementById('username-overlay')) {
+  const overlayDiv = document.querySelector('#username-overlay > div');
+  if (overlayDiv && !document.getElementById('overlay-load-btn2')) {
+    // Create Load UI
+    const saveLoadDiv = document.createElement('div');
+    saveLoadDiv.id = 'overlay-save-load-ui';
+    saveLoadDiv.style.display = 'flex';
+    saveLoadDiv.style.gap = '8px';
+    saveLoadDiv.style.alignItems = 'center';
+    saveLoadDiv.style.marginBottom = '18px';
+
+    // Load button (triggers file input)
+    const loadBtn = document.createElement('button');
+    loadBtn.id = 'overlay-load-btn2';
+    loadBtn.textContent = 'Load';
+    loadBtn.style.fontWeight = 'bold';
+    loadBtn.style.fontSize = '1em';
+    loadBtn.style.background = '#35373e';
+    loadBtn.style.color = '#ffba3a';
+    loadBtn.style.border = 'none';
+    loadBtn.style.borderRadius = '6px';
+    loadBtn.style.padding = '6px 18px';
+    loadBtn.style.cursor = 'pointer';
+    loadBtn.onclick = function() {
+      document.getElementById('main-load-input').click();
+    };
+
+    saveLoadDiv.appendChild(loadBtn);
+
+    // Insert right below Stop Music button (after the two music buttons)
+    const musicBtns = overlayDiv.querySelectorAll('button');
+    if (musicBtns.length >= 2) {
+      musicBtns[1].after(saveLoadDiv);
+    } else {
+      overlayDiv.prepend(saveLoadDiv);
+    }
+  }
+}
+
+// Hide overlay load button after starting game
+const usernameSubmitBtn = document.getElementById('username-submit');
+if (usernameSubmitBtn) {
+  usernameSubmitBtn.addEventListener('click', function() {
+    const overlayLoadBtn = document.getElementById('overlay-load-btn2');
+    if (overlayLoadBtn) overlayLoadBtn.style.display = 'none';
+  });
+}
+/* --- MUSIC BUTTON IN MAIN UI (top left, by Save) --- */
+if (!document.getElementById('main-music-btn')) {
+  // Create music button
+  const musicBtn = document.createElement('button');
+  musicBtn.id = 'main-music-btn';
+  musicBtn.title = 'Toggle Music';
+  musicBtn.style.fontWeight = 'bold';
+  musicBtn.style.fontSize = '1.2em';
+  musicBtn.style.background = '#35373e';
+  musicBtn.style.color = '#ffba3a';
+  musicBtn.style.border = 'none';
+  musicBtn.style.borderRadius = '6px';
+  musicBtn.style.padding = '6px 12px';
+  musicBtn.style.cursor = 'pointer';
+  musicBtn.style.marginRight = '6px';
+  musicBtn.innerHTML = '🎵';
+
+  // Insert before Save button in #main-save-ui
+  const saveUi = document.getElementById('main-save-ui');
+  if (saveUi && saveUi.firstChild) {
+    saveUi.insertBefore(musicBtn, saveUi.firstChild);
+  }
+
+  // Toggle music play/pause
+  musicBtn.onclick = function() {
+    const music = document.getElementById('username-music');
+    if (!music) return;
+    if (music.paused) {
+      music.play().catch(() => {
+        document.body.addEventListener('click', () => music.play(), { once: true });
+      });
+      musicBtn.style.background = '#ffba3a';
+      musicBtn.style.color = '#23252a';
+    } else {
+      music.pause();
+      musicBtn.style.background = '#35373e';
+      musicBtn.style.color = '#ffba3a';
+    }
+  };
+
+  // Set initial state based on music
+  const music = document.getElementById('username-music');
+  if (music && !music.paused) {
+    musicBtn.style.background = '#ffba3a';
+    musicBtn.style.color = '#23252a';
+  }
+}
+
+/*
+  --- Make panels draggable, but restrict dragging to visible columns only ---
+  This restricts dragging so panels can only be dropped inside the visible columns
+  (#left-col, #center-col, #right-col) and not anywhere on the screen.
+*/
+function makePanelDraggable(panelId, handleSelector) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  let handle = panel.querySelector(handleSelector);
+  if (!handle) {
+    // If no handle, create one
+    handle = document.createElement('div');
+    handle.className = 'panel-draggable-handle';
+    handle.textContent = panel.querySelector('h2') ? panel.querySelector('h2').textContent : panelId;
+    panel.insertBefore(handle, panel.firstChild);
+  }
+  handle.style.cursor = 'grab';
+  let offsetX = 0, offsetY = 0, startX = 0, startY = 0, dragging = false;
+  let dropTarget = null;
+
+  // Helper: get all visible columns
+  function getColumns() {
+    return [
+      document.getElementById('left-col'),
+      document.getElementById('center-col'),
+      document.getElementById('right-col')
+    ].filter(Boolean);
+  }
+
+  handle.onmousedown = function(e) {
+    dragging = true;
+    panel.classList.add('dragging');
+    panel.style.position = 'fixed';
+    panel.style.zIndex = 5000;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = panel.getBoundingClientRect();
+    offsetX = startX - rect.left;
+    offsetY = startY - rect.top;
+
+    document.onmousemove = function(ev) {
+      if (!dragging) return;
+      // Move panel visually
+      panel.style.left = (ev.clientX - offsetX) + 'px';
+      panel.style.top = (ev.clientY - offsetY) + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+
+      // Highlight column under cursor
+      let foundTarget = null;
+      getColumns().forEach(col => {
+        const colRect = col.getBoundingClientRect();
+        if (
+          ev.clientX >= colRect.left && ev.clientX <= colRect.right &&
+          ev.clientY >= colRect.top && ev.clientY <= colRect.bottom
+        ) {
+          foundTarget = col;
+        }
+        col.classList.remove('drop-target');
+      });
+      if (foundTarget) {
+        foundTarget.classList.add('drop-target');
+      }
+      dropTarget = foundTarget;
+    };
+
+    document.onmouseup = function(ev) {
+      dragging = false;
+      panel.classList.remove('dragging');
+      document.onmousemove = null;
+      document.onmouseup = null;
+      // Remove drop-target highlight
+      getColumns().forEach(col => col.classList.remove('drop-target'));
+
+      // Only drop if inside a column
+      if (dropTarget) {
+        // Remove panel from its current parent and append to dropTarget
+        dropTarget.appendChild(panel);
+        // Reset panel position to static so it fits in column flow
+        panel.style.position = '';
+        panel.style.left = '';
+        panel.style.top = '';
+        panel.style.right = '';
+        panel.style.bottom = '';
+        panel.style.zIndex = '';
+      } else {
+        // Snap back to original parent (do nothing, just reset position)
+        panel.style.position = '';
+        panel.style.left = '';
+        panel.style.top = '';
+        panel.style.right = '';
+        panel.style.bottom = '';
+        panel.style.zIndex = '';
+      }
+      dropTarget = null;
+    };
+    e.preventDefault();
+  };
+}
+
+// List of panel IDs to make draggable
+['player-stats-panel', 'equipment-panel', 'baginv-panel', 'derived-stats-panel', 'bank-panel', 'map-panel', 'shop-panel', 'log-panel'].forEach(function(pid) {
+  makePanelDraggable(pid, '.panel-draggable-handle');
+});
+
+// Make modals draggable too
+makePanelDraggable('bank-modal', '.panel-draggable-handle');
+if (document.getElementById('town-popup')) makePanelDraggable('town-popup', '.panel-draggable-handle');
+if (document.getElementById('special-seller-popup')) makePanelDraggable('special-seller-popup', '.panel-draggable-handle');
+/*
+  --- PATCH: Add item tooltips for inventory and bag items ---
+  This will show a tooltip with item stats on hover for both inventory and bag items.
+*/
+
+// Helper: generate tooltip HTML for an item
+function getItemTooltip(item) {
+  let lines = [];
+  lines.push(`<b>${item.name}</b>`);
+  if (item.description) lines.push(`<span style="color:#aaa;">${item.description}</span>`);
+  if (item.attackPower) lines.push(`ATK: <b>+${item.attackPower}</b>`);
+  if (item.defense) lines.push(`DEF: <b>+${item.defense}</b>`);
+  if (item.health) lines.push(`HP: <b>+${item.health}</b>`);
+  if (item.heal) lines.push(`Heals: <b>+${item.heal}</b>`);
+  if (item.count && item.type === "arrows") lines.push(`Arrows: <b>x${item.count}</b>`);
+  if (item.type) lines.push(`<span style="color:#ffba3a;">Type: ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>`);
+  return lines.join('<br>');
+}
+
+// Patch renderBagInv to add tooltip to each item-card
+const origRenderBagInv = renderBagInv;
+renderBagInv = function() {
+  origRenderBagInv();
+  // Add tooltip event listeners to all .item-card
+  const cards = document.querySelectorAll('#baginv-content .item-card');
+  let itemsArr = baginvTab === "inventory" ? player.inventory : player.bag;
+  cards.forEach((card, idx) => {
+    // Remove any existing tooltip
+    let oldTip = card.querySelector('.item-tooltip');
+    if (oldTip) oldTip.remove();
+
+    // Create tooltip div
+    const tooltip = document.createElement('div');
+    tooltip.className = 'item-tooltip';
+    tooltip.style.display = 'none';
+    tooltip.style.position = 'absolute';
+    tooltip.style.left = '110%';
+    tooltip.style.top = '50%';
+    tooltip.style.transform = 'translateY(-50%)';
+    tooltip.style.background = '#18191c';
+    tooltip.style.color = '#eee';
+    tooltip.style.padding = '7px 13px';
+    tooltip.style.borderRadius = '8px';
+    tooltip.style.border = '1px solid #444';
+    tooltip.style.whiteSpace = 'nowrap';
+    tooltip.style.fontSize = '0.98em';
+    tooltip.style.boxShadow = '0 2px 10px #0007';
+    tooltip.style.zIndex = '10';
+    tooltip.style.minWidth = '160px';
+    tooltip.innerHTML = getItemTooltip(itemsArr[idx]);
+    card.appendChild(tooltip);
+
+    // Show/hide on hover
+    card.onmouseenter = () => { tooltip.style.display = 'block'; };
+    card.onmouseleave = () => { tooltip.style.display = 'none'; };
+    card.onmousemove = (e) => {
+      // Optional: move tooltip with mouse
+      tooltip.style.left = (e.offsetX + 30) + 'px';
+      tooltip.style.top = (e.offsetY - 10) + 'px';
+    };
+  });
+};
+
+// Add tooltip CSS
+const style = document.createElement('style');
+style.textContent = `
+  .item-card { position: relative; }
+  .item-tooltip {
+    pointer-events: none;
+    opacity: 0.98;
+    transition: opacity 0.12s;
+  }
+`;
+document.head.appendChild(style);
+
+/*
+  --- AUTO ATTACK BUTTON FOR ENEMY ENCOUNTER ---
+  Adds a button (⚔️⚔️) to auto-attack the enemy until one side is defeated or the player cancels.
+*/
+
+// Add the auto-attack button to the enemy controls UI
+function addAutoAttackButton() {
+  const controls = document.getElementById('enemy-controls');
+  if (!controls) return;
+  // Prevent duplicate button
+  if (document.getElementById('auto-attack-btn')) return;
+  const btn = document.createElement('button');
+  btn.className = 'enemy-action-btn';
+  btn.id = 'auto-attack-btn';
+  btn.innerHTML = '⚔️ Auto Attack ⚔️';
+  btn.style.fontWeight = 'bold';
+  btn.onclick = startAutoAttack;
+  controls.appendChild(btn);
+}
+
+// Remove the auto-attack button (e.g., after combat ends)
+function removeAutoAttackButton() {
+  const btn = document.getElementById('auto-attack-btn');
+  if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
+}
+
+// Auto-attack logic
+let autoAttackActive = false;
+function startAutoAttack() {
+  if (!currentEnemy || !inCombat) return;
+  autoAttackActive = true;
+  // Change button to "Cancel Auto"
+  const btn = document.getElementById('auto-attack-btn');
+  if (btn) {
+    btn.textContent = '❌ Cancel Auto';
+    btn.onclick = stopAutoAttack;
+    btn.style.background = '#ff4444';
+    btn.style.color = '#fff';
+  }
+  autoAttackLoop();
+}
+function stopAutoAttack() {
+  autoAttackActive = false;
+  // Restore button
+  const btn = document.getElementById('auto-attack-btn');
+  if (btn) {
+    btn.textContent = '⚔️⚔️ Auto Attack';
+    btn.onclick = startAutoAttack;
+    btn.style.background = '';
+    btn.style.color = '';
+  }
+}
+
+// Loop: attack, wait, repeat if still in combat and autoAttackActive
+function autoAttackLoop() {
+  if (!autoAttackActive || !currentEnemy || !inCombat) {
+    stopAutoAttack();
+    return;
+  }
+  // Only attack if enemy and player are alive
+  if (currentEnemy.health > 0 && player.health > 0) {
+    attackEnemy();
+    // Wait for enemy attack animation, then repeat
+    setTimeout(() => {
+      if (currentEnemy && currentEnemy.health > 0 && player.health > 0 && inCombat && autoAttackActive) {
+        autoAttackLoop();
+      } else {
+        stopAutoAttack();
+      }
+    }, 900);
+  } else {
+    stopAutoAttack();
+  }
+}
+
+// Patch renderEnemyEncounter to add/remove the button
+const origRenderEnemyEncounter = renderEnemyEncounter;
+renderEnemyEncounter = function() {
+  origRenderEnemyEncounter();
+  if (currentEnemy && inCombat) {
+    addAutoAttackButton();
+  } else {
+    removeAutoAttackButton();
+    autoAttackActive = false;
+  }
+};
+
+// Also stop auto-attack if player runs away or dies
+const origClearEnemy = clearEnemy;
+clearEnemy = function() {
+  autoAttackActive = false;
+  removeAutoAttackButton();
+  origClearEnemy();
+};
+/*
+  --- PATCH: Robust Save/Load Error Handling ---
+  Ensures save files are saved and loaded correctly, with user-friendly error messages.
+*/
+
+// Patch save button to catch errors
+const origMainSaveBtn = document.getElementById('main-save-btn').onclick;
+document.getElementById('main-save-btn').onclick = function() {
+  try {
+    origMainSaveBtn && origMainSaveBtn();
+  } catch (e) {
+    alert('Failed to save game: ' + (e && e.message ? e.message : e));
+  }
+};
+
+// Patch load input to catch errors and validate file structure
+const mainLoadInput = document.getElementById('main-load-input');
+if (mainLoadInput) {
+  const origLoadHandler = mainLoadInput.onchange || null;
+  mainLoadInput.onchange = function(e) {
+    try {
+      const file = e.target.files[0];
+      if (!file) throw new Error('No file selected.');
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const saveData = JSON.parse(evt.target.result);
+          if (
+            !saveData.player ||
+            typeof saveData.player !== 'object' ||
+            !saveData.visitedTowns ||
+            typeof saveData.visitedTowns !== 'object' ||
+            !saveData.playerPosition ||
+            typeof saveData.playerPosition !== 'object'
+          ) {
+            throw new Error('Invalid save file structure.');
+          }
+          // Defensive assignment as before
+          initMap();
+          // Always use the most recent save stats (from file)
+          player.name = saveData.player.name || "Hero";
+          player.health = typeof saveData.player.health === "number" ? saveData.player.health : 100;
+          player.maxHealth = typeof saveData.player.maxHealth === "number" ? saveData.player.maxHealth : 100;
+          player.gold = typeof saveData.player.gold === "number" ? saveData.player.gold : 0;
+          player.experience = typeof saveData.player.experience === "number" ? saveData.player.experience : 0;
+          player.level = typeof saveData.player.level === "number" ? saveData.player.level : 1;
+          player.bankGold = typeof saveData.player.bankGold === "number" ? saveData.player.bankGold : 0;
+          player.inventory = Array.isArray(saveData.player.inventory) ? JSON.parse(JSON.stringify(saveData.player.inventory)) : [];
+          player.bag = Array.isArray(saveData.player.bag) ? JSON.parse(JSON.stringify(saveData.player.bag)) : [];
+          player.equipment = typeof saveData.player.equipment === "object" && saveData.player.equipment !== null
+            ? JSON.parse(JSON.stringify(saveData.player.equipment))
+            : { helmet: null, weapon: null, armor: null, ring: null, arrows: null, cloak: null, shield: null, amulet: null, gloves: null, boots: null };
+          player.bank = Array.isArray(saveData.player.bank) ? JSON.parse(JSON.stringify(saveData.player.bank)) : [];
+          Object.keys(visitedTowns).forEach(k => delete visitedTowns[k]);
+          Object.assign(visitedTowns, saveData.visitedTowns);
+          playerPosition.x = typeof saveData.playerPosition.x === "number" ? saveData.playerPosition.x : Math.floor(mapSize/2);
+          playerPosition.y = typeof saveData.playerPosition.y === "number" ? saveData.playerPosition.y : Math.floor(mapSize/2);
+          discovered[playerPosition.y][playerPosition.x] = true;
+          renderPlayerStats();
+          renderDerivedStats();
+          renderEquipment();
+          renderBagInv();
+          renderMap();
+          alert('Game loaded from file!');
+          if (document.getElementById('username-overlay').style.display !== 'none') {
+            document.getElementById('username-overlay').style.display = 'none';
+            const overlayLoadBtn2 = document.getElementById('overlay-load-btn2');
+            if (overlayLoadBtn2) overlayLoadBtn2.style.display = 'none';
+          }
+        } catch (err) {
+          alert('Failed to load save: ' + (err && err.message ? err.message : err));
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    } catch (err) {
+      alert('Failed to load save: ' + (err && err.message ? err.message : err));
+    }
+    if (origLoadHandler) origLoadHandler.call(this, e);
+  };
+
+  // --- PATCH: Enter Username - auto-fill with most recent save if available ---
+  document.getElementById('username-input').addEventListener('focus', function() {
+    // Try to auto-fill username from the most recent save in localStorage (if any)
+    try {
+      // Check if a recent save exists in localStorage (optional, if you want to support this)
+      // Otherwise, skip this block if you only load from file
+      // Example: let lastSave = localStorage.getItem('lastGameSave');
+      // If you want to auto-fill from file, you need to store last loaded username in localStorage after loading
+      // For now, do nothing unless you want to implement localStorage-based auto-fill
+    } catch (e) {}
+  });
+}
+
+
+</script>
+</body>
+</html>
