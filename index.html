@@ -2600,6 +2600,8 @@ if (!document.getElementById('main-load-input')) {
   loadInput.id = 'main-load-input';
   document.body.appendChild(loadInput);
 
+Array.from(document.body.querySelectorAll('*')).find(el => el.textContent.includes('login'));
+
   loadInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
