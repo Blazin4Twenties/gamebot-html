@@ -1047,12 +1047,12 @@
 <div id="main-save-ui" style="position:fixed;top:10px;left:10px;z-index:2100;background:#23252a;border-radius:10px;padding:8px 16px;box-shadow:0 2px 12px #0007;display:flex;gap:8px;align-items:center;">
 <button id="main-save-btn" style="font-weight:bold;font-size:1em;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;">Save</button>
 </div>
- <source src="rs3theme.mp3" type="audio/mpeg">
 <!-- Username overlay with load/delete only -->
 <div id="username-overlay" style="position:fixed;z-index:3000;top:0;left:0;width:100vw;height:100vh;background:#191a1e;display:flex;align-items:center;justify-content:center;">
 <div style="background:#23252a;padding:38px 44px 32px 44px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;">
-<button onclick="(function(){var audio=document.getElementById('backgroundMusic'); if(audio){audio.play();}else{alert('Background music element not found!');}})()">Interface Sound</button>
-<button onclick="(function(){var audio=document.getElementById('backgroundMusic'); if(audio){audio.pause();}else{alert('Background music element not found!');}})()">Stop Music</button>
+<audio id="username-music" src="rs3theme.mp3.mp3" loop autoplay style="display:none;"></audio>
+    <button onclick="document.getElementById('username-music').play()">Interface Sound</button>
+    <button onclick="document.getElementById('username-music').pause()">Stop Music</button>
 <!-- Load button above username -->
 <button id="overlay-load-btn" style="font-weight:bold;font-size:1em;background:#35373e;color:#ffba3a;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;margin-bottom:14px;">Load</button>
 <div id="overlay-load-delete-ui" style="display:flex;gap:8px;align-items:center;margin-bottom:18px;">
