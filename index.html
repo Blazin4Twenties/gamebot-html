@@ -3124,17 +3124,6 @@ if (mainLoadInput) {
     if (origLoadHandler) origLoadHandler.call(this, e);
   };
 
-  // --- PATCH: Enter Username - auto-fill with most recent save if available ---
-  document.getElementById('username-input').addEventListener('focus', function() {
-    // Try to auto-fill username from the most recent save in localStorage (if any)
-    try {
-      // Check if a recent save exists in localStorage (optional, if you want to support this)
-      // Otherwise, skip this block if you only load from file
-      // Example: let lastSave = localStorage.getItem('lastGameSave');
-      // If you want to auto-fill from file, you need to store last loaded username in localStorage after loading
-      // For now, do nothing unless you want to implement localStorage-based auto-fill
-    } catch (e) {}
-  });
 }
 
 
