@@ -3269,7 +3269,25 @@ if (mainLoadInput) {
     if (origLoadHandler) origLoadHandler.call(this, e);
   };
 }
-    // Add the "Panel Locations" button to the bottom left of the main UI
+/*
+  --- PANEL LOCATION UI ---
+  Adds a button to show a popup listing all panels and their current column (Left, Center, Right).
+  Allows moving panels between columns via a dropdown, and updates the UI live.
+*/
+
+// Helper: panel IDs and display names
+const panelLocations = [
+  { id: 'player-stats', name: 'Player Stats' },
+  { id: 'equipment', name: 'Equipment' },
+  { id: 'baginv', name: 'Inventory/Bag' },
+  { id: 'derived-stats', name: 'Current Stats' },
+  { id: 'bank', name: 'Bank' },
+  { id: 'map', name: 'Map' },
+  { id: 'shop', name: 'Shop' },
+  { id: 'log-panel', name: 'Game Log' }
+];
+
+// Add the "Panel Locations" button to the bottom left of the main UI
 (function() {
   if (!document.getElementById('panel-locations-btn')) {
     const btn = document.createElement('button');
@@ -3371,7 +3389,6 @@ function renderPanelLocationsList() {
 
 // Expose movePanelToColumn globally for dropdown onchange
 window.movePanelToColumn = movePanelToColumn;
-
 
 </script>
 </body>
