@@ -3269,6 +3269,108 @@ if (mainLoadInput) {
     if (origLoadHandler) origLoadHandler.call(this, e);
   };
 }
+    // Add the "Panel Locations" button to the bottom left of the main UI
+(function() {
+  if (!document.getElementById('panel-locations-btn')) {
+    const btn = document.createElement('button');
+    btn.id = 'panel-locations-btn';
+    btn.textContent = 'Panel Locations';
+    btn.style.fontWeight = 'bold';
+    btn.style.fontSize = '1em';
+    btn.style.background = '#35373e';
+    btn.style.color = '#ffba3a';
+    btn.style.border = 'none';
+    btn.style.borderRadius = '6px';
+    btn.style.padding = '6px 18px';
+    btn.style.cursor = 'pointer';
+    btn.style.position = 'fixed';
+    btn.style.left = '10px';
+    btn.style.bottom = '10px';
+    btn.style.zIndex = '2100';
+    document.body.appendChild(btn);
+    btn.onclick = showPanelLocationsPopup;
+  }
+})();
+
+// Panel Locations Popup logic
+function showPanelLocationsPopup() {
+  let popup = document.getElementById('panel-locations-popup');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'panel-locations-popup';
+    popup.style = 'display:flex;position:fixed;z-index:6000;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;align-items:center;justify-content:center;';
+    popup.innerHTML = `
+      <div style="background:#23252a;padding:38px 44px 32px 44px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:340px;">
+        <div style="color:#ffba3a;font-size:1.3em;margin-bottom:18px;">Panel Locations</div>
+        <div id="panel-locations-list" style="margin-bottom:18px;width:100%;"></div>
+        <button id="panel-locations-close" style="font-size:1.1em;font-weight:bold;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Close</button>
+      </div>
+    `;
+    document.body.appendChild(popup);
+    document.getElementById('panel-locations-close').onclick = function() {
+      popup.style.display = 'none';
+    };
+  }
+  renderPanelLocationsList();
+  popup.style.display = 'flex';
+}
+
+// Helper: get column name for a panel
+function getPanelColumn(panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel || !panel.parentNode) return 'Unknown';
+  if (panel.parentNode.id === 'left-col') return 'Left';
+  if (panel.parentNode.id === 'center-col') return 'Center';
+  if (panel.parentNode.id === 'right-col') return 'Right';
+  return 'Unknown';
+}
+
+// Helper: move panel to column
+function movePanelToColumn(panelId, colName) {
+  const panel = document.getElementById(panelId);
+  let targetCol = null;
+  if (colName === 'Left') targetCol = document.getElementById('left-col');
+  else if (colName === 'Center') targetCol = document.getElementById('center-col');
+  else if (colName === 'Right') targetCol = document.getElementById('right-col');
+  if (panel && targetCol && panel.parentNode !== targetCol) {
+    targetCol.appendChild(panel);
+    // Reset position if it was being dragged
+    panel.style.position = '';
+    panel.style.left = '';
+    panel.style.top = '';
+    panel.style.right = '';
+    panel.style.bottom = '';
+    panel.style.zIndex = '';
+  }
+  renderPanelLocationsList();
+}
+
+// Render the panel locations list with dropdowns
+function renderPanelLocationsList() {
+  const listDiv = document.getElementById('panel-locations-list');
+  if (!listDiv) return;
+  let html = '<table style="width:100%;color:#fff;font-size:1em;">';
+  html += '<tr><th style="text-align:left;">Panel</th><th style="text-align:left;">Location</th><th style="text-align:left;">Move</th></tr>';
+  panelLocations.forEach(panel => {
+    const col = getPanelColumn(panel.id);
+    html += `<tr>
+      <td>${panel.name}</td>
+      <td>${col}</td>
+      <td>
+        <select onchange="movePanelToColumn('${panel.id}', this.value)">
+          <option value="Left"${col==='Left'?' selected':''}>Left</option>
+          <option value="Center"${col==='Center'?' selected':''}>Center</option>
+          <option value="Right"${col==='Right'?' selected':''}>Right</option>
+        </select>
+      </td>
+    </tr>`;
+  });
+  html += '</table>';
+  listDiv.innerHTML = html;
+}
+
+// Expose movePanelToColumn globally for dropdown onchange
+window.movePanelToColumn = movePanelToColumn;
 
 
 </script>
