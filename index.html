@@ -1148,11 +1148,11 @@
 </div>
 <div id="container">
 <div id="left-col">
-<div class="panel" id="player-stats-panel">
+<div class="panel" id="player-stats">
 <h2>Player Stats</h2>
 <ul id="player-stats-ul"></ul>
 </div>
-<div class="panel" id="equipment-panel">
+<div class="panel" id="equipment">
 <h2>Equipment</h2>
 <div id="equipment-ui">
 <div class="equipment-side left" id="equipment-slots-left"></div>
@@ -1163,18 +1163,18 @@
 </div>
 <div id="equipment-legend"></div>
 </div>
-<div class="panel" id="baginv-panel">
+<div class="panel" id="baginv">
 <div id="baginv-tabs">
 <button class="baginv-tab active" id="tab-inventory" onclick="switchBagInv('inventory')">Inventory</button>
 <button class="baginv-tab" id="tab-bag" onclick="switchBagInv('bag')">Bag</button>
 </div>
 <div id="baginv-content"></div>
 </div>
-<div class="panel" id="derived-stats-panel">
+<div class="panel" id="derived-stats">
 <h2>Current Stats</h2>
 <ul id="derived-stats-list"></ul>
 </div>
-<div class="panel" id="bank-panel">
+<div class="panel" id="bank">
 <button id="bank-open-btn" onclick="openBank()">Open Bank</button>
 </div>
 </div>
@@ -1201,8 +1201,7 @@
 </div>
 </div>
 <div id="right-col">
-<div class="panel" id="map-panel">
-<h2>Map</h2>
+<div class="panel" id="map">
 <div id="map-container">
 <div id="map-index">
 <div class="map-index-item"><span class="map-index-color" style="background:#e53935"></span>Central Town</div>
@@ -1222,31 +1221,96 @@
 <div id="map-area-label"></div>
 </div>
 </div>
-<div class="panel" id="shop-panel" style="margin-top:18px;">
+<div class="panel" id="shop" style="margin-top:18px;">
 <div style="display:flex;align-items:center;justify-content:space-between;">
-<h2 style="font-weight:bold;">Shop</h2>
 <button id="refresh-shop-btn" style="font-size:1em;background:#35373e;color:#ffba3a;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;">Refresh Shop</button>
 </div>
 <div id="shop-items-list" style="margin-top:18px;"></div>
 </div>
-<div class="panel" id="log-panel" style="grid-column:1/4;max-width:none;width:100%;margin-top:24px;">
-<h2>Game Log</h2>
-<div id="game-log"></div>
+<div class="panel" id="log-panel" style="grid-column:1/4;max-width:none;width:100%;margin-top:0;">
+  <div id="game-log"></div>
 </div>
 </div>
 </div>
 <div id="bank-modal-bg" style="display:none;position:fixed;z-index:1200;top:0;left:0;width:100vw;height:100vh;background:#18191cbb;align-items:center;justify-content:center;">
-<div id="bank-modal" style="background:#23252a;border-radius:18px;box-shadow:0 0 44px #000c,0 5px 32px #2b2a2a45;padding:32px 29px 24px 29px;min-width:450px;min-height:320px;position:relative;z-index:1211;display:flex;flex-direction:column;">
-<button id="bank-close-btn" onclick="closeBank()" style="position:absolute;top:12px;right:16px;font-size:1.38em;background:none;border:none;color:#fff;cursor:pointer;">×</button>
-<h2>Bank</h2>
-<div id="bank-content" style="display:flex;flex-direction:row;gap:32px;margin-top:14px;justify-content:center;align-items:flex-start;">
-<div class="bank-section">
-<div style="font-weight:bold;color:#ffba3a;margin-bottom:7px;">Bank Items</div>
-<div class="bank-list" id="bank-list"></div>
+  <div id="bank" style="background:#23252a;border-radius:18px;box-shadow:0 0 44px #000c,0 5px 32px #2b2a2a45;padding:32px 29px 24px 29px;min-width:450px;min-height:320px;position:relative;z-index:1211;display:flex;flex-direction:column;">
+    <button id="bank-close-btn" onclick="closeBank()" style="position:absolute;top:12px;right:16px;font-size:1.38em;background:none;border:none;color:#fff;cursor:pointer;">×</button>
+    <div id="bank-content" style="display:flex;flex-direction:column;gap:18px;margin-top:14px;justify-content:center;align-items:flex-start;">
+      <!-- Bank Gold and Deposit section (top row) -->
+      <div style="display:flex;align-items:center;gap:18px;">
+        <div style="font-weight:bold;color:#ffba3a;">Bank Gold: <span id="bank-gold-label"></span></div>
+        <div>
+          <input type="number" id="deposit-gold-amount" min="1" placeholder="Gold to deposit" style="width:120px;padding:4px 8px;border-radius:5px;border:1px solid #444;background:#18191c;color:#fff;">
+          <button id="deposit-gold-btn" style="background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Deposit Gold</button>
+        </div>
+        <div>
+          <input type="number" id="withdraw-gold-amount" min="1" placeholder="Gold to withdraw" style="width:120px;padding:4px 8px;border-radius:5px;border:1px solid #444;background:#18191c;color:#fff;">
+          <button id="withdraw-gold-btn" style="background:#35373e;color:#ffba3a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Withdraw Gold</button>
+        </div>
+      </div>
+      <!-- Inventory/Bag section (below bank gold/deposit) -->
+      <div class="bank-section">
+        <div style="font-weight:bold;color:#ffba3a;margin-bottom:7px;">Inventory/Bag</div>
+        <div class="bank-list" id="bank-inv-list"></div>
+      </div>
+      <!-- Bank Items section (below inventory/bag) -->
+      <div class="bank-section">
+        <div style="font-weight:bold;color:#ffba3a;margin-bottom:7px;">Bank Items</div>
+        <div class="bank-list" id="bank-list"></div>
+      </div>
+    </div>
+    <script>
+      function updateBankGoldLabels() {
+        document.getElementById('bank-gold-label').textContent = player.bankGold;
+        renderPlayerStats();
+      }
+      document.getElementById('deposit-gold-btn').onclick = function() {
+        const amt = parseInt(document.getElementById('deposit-gold-amount').value, 10);
+        if (isNaN(amt) || amt <= 0) {
+          alert('Enter a valid amount.');
+          return;
+        }
+        if (player.gold < amt) {
+          alert('Not enough gold to deposit.');
+          return;
+        }
+        player.gold -= amt;
+        player.bankGold += amt;
+        updateBankGoldLabels();
+        logMsg(`Deposited ${amt} gold to the bank.`);
+        document.getElementById('deposit-gold-amount').value = '';
+      };
+      document.getElementById('withdraw-gold-btn').onclick = function() {
+        const amt = parseInt(document.getElementById('withdraw-gold-amount').value, 10);
+        if (isNaN(amt) || amt <= 0) {
+          alert('Enter a valid amount.');
+          return;
+        }
+        if (player.bankGold < amt) {
+          alert('Not enough gold in bank.');
+          return;
+        }
+        player.bankGold -= amt;
+        player.gold += amt;
+        updateBankGoldLabels();
+        logMsg(`Withdrew ${amt} gold from the bank.`);
+        document.getElementById('withdraw-gold-amount').value = '';
+      };
+      // Update label when bank modal opens
+      if (document.getElementById('bank-modal-bg')) {
+        document.getElementById('bank-modal-bg').addEventListener('show', updateBankGoldLabels);
+      }
+      function renderBank() {
+        // ...existing code...
+        updateBankGoldLabels();
+      }
+    </script>
+  </div>
 </div>
-<div class="bank-section">
-<div style="font-weight:bold;color:#ffba3a;margin-bottom:7px;">Inventory/Bag</div>
-<div class="bank-list" id="bank-inv-list"></div>
+    </script>
+  </div>
+</div>
+</script>
 </div>
 </div>
 </div>
