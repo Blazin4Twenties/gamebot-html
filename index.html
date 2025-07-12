@@ -4532,7 +4532,7 @@ function handlePrayerInterval() {
   `;
   document.head.appendChild(style);
 
-    // --- PRAYER ALTAR UI ---
+     // --- PRAYER ALTAR UI ---
   if (!document.getElementById('prayer-altar-panel')) {
     const altarPanel = document.createElement('div');
     altarPanel.id = 'prayer-altar-panel';
@@ -4540,11 +4540,10 @@ function handlePrayerInterval() {
     altarPanel.style = 'margin-top:12px;background:#292c31;border-radius:10px;padding:16px;box-shadow:0 2px 10px #000a;display:flex;flex-direction:column;align-items:center;';
     altarPanel.innerHTML = `
       <div style="margin-bottom:10px;">
-        <img src="images/altar.png" alt="Prayer Altar" style="width:300px;height:90px;object-fit:cover;border-radius:8px;box-shadow:0 2px 12px #0007;">
+        <img src="https://barbarakorzeniowska.com/wp-content/uploads/2025/06/img_6078.jpg?w=768" alt="Prayer Altar" style="width:300px;height:90px;object-fit:cover;border-radius:8px;box-shadow:0 2px 12px #0007;">
       </div>
       <button id="renew-prayer-btn" style="font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
       <div id="renew-prayer-msg" style="margin-top:10px;color:#6cf;font-size:1em;display:none;"></div>
-      <audio id="prayer-renew-audio" src="audio/prayer.mp3.mp3" preload="auto"></audio>
     `;
     // Insert below prayer panel
     const prayerPanel = document.getElementById('prayer-panel');
@@ -4560,16 +4559,11 @@ function handlePrayerInterval() {
       msg.textContent = 'Your prayer has been renewed!';
       msg.style.display = 'block';
       setTimeout(() => { msg.style.display = 'none'; }, 1800);
-      // Play sound
-      const audio = document.getElementById('prayer-renew-audio');
-      if (audio) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {
-          document.body.addEventListener('click', () => audio.play(), { once: true });
-        });
-      }
+    
     };
   }
+
+
 
 
 
