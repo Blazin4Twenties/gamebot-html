@@ -118,30 +118,26 @@
     .equipment-side {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      min-width: 120px;
+      gap: 35px;
+      min-width: 150px;
+    }
+    .equipment-side.left {
       align-items: flex-end;
     }
     .equipment-side.right {
       align-items: flex-start;
     }
-    #char-portrait-box {
-      position: relative;
-      width: 120px; height: 220px;
-      margin: 0 8px;
-      background: #23252a;
-      border-radius: 9px;
-      border: 2px solid #23252a;
-      box-shadow: 0 0 14px #1c1d1f7d, 0 2px 20px #0007;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #char-portrait {
-      width: 90px; height: 180px;
-      background: #23252a;
-      z-index: 2;
-    }
+#char-portrait-box {
+  width: 100%;
+  max-width: 320px;
+  height: 40vw; /* Or another value that fits nicely */
+  max-height: 480px;
+}
+
+#char-portrait {
+  width: 100%;
+  height: 100%;
+}
     .equip-slot {
       width: 150px;
       height: 48px;
@@ -2044,6 +2040,208 @@ function chooseExploreDir(dx, dy) {
   exploreDir = {dx, dy};
   doExplore();
 }
+
+(function() {
+  // Remove old button if exists
+  let oldBtn = document.getElementById('auto-explore-btn');
+  if (oldBtn) oldBtn.remove();
+  // Create button
+  const btn = document.createElement('button');
+  btn.id = 'auto-explore-btn';
+  btn.textContent = 'Auto Explore';
+  btn.style.fontWeight = 'bold';
+  btn.style.fontSize = '1em';
+  btn.style.background = '#ffba3a';
+  btn.style.color = '#23252a';
+  btn.style.border = 'none';
+  btn.style.borderRadius = '12px';
+  btn.style.padding = '14px 32px';
+  btn.style.cursor = 'pointer';
+  btn.style.marginLeft = '18px';
+  btn.onclick = function() {
+    showAutoExploreDirectionPopup();
+  };
+  // Insert beside Explore button
+  const exploreBar = document.getElementById('explore-bar');
+  if (exploreBar) {
+    exploreBar.appendChild(btn);
+  }
+})();
+
+let autoExploreActive = false;
+let autoExploreDir = null;
+let autoExploreTimer = null;
+let autoExploreAutoAttack = false;
+
+function showAutoExploreDirectionPopup() {
+  // Remove old popup if exists
+  let oldPopup = document.getElementById('auto-explore-dir-popup');
+  if (oldPopup) oldPopup.remove();
+  // Create popup
+  const popup = document.createElement('div');
+  popup.id = 'auto-explore-dir-popup';
+  popup.style = 'position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+  popup.innerHTML = `
+    <div style="background:#23252a;padding:32px 38px 24px 38px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;">
+      <div style="color:#ffba3a;font-size:1.2em;margin-bottom:18px;">Choose Auto Explore Direction</div>
+      <label style="margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="auto-explore-auto-attack" style="width:18px;height:18px;">
+        <span style="color:#ffba3a;font-weight:bold;">Auto Attack Enemies</span>
+      </label>
+      <div style="display:flex;gap:18px;margin-bottom:18px;">
+        <button onclick="startAutoExplore(0,-1);closeAutoExploreDirPopup()" style="font-size:1.1em;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">North</button>
+        <button onclick="startAutoExplore(1,0);closeAutoExploreDirPopup()" style="font-size:1.1em;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">East</button>
+        <button onclick="startAutoExplore(0,1);closeAutoExploreDirPopup()" style="font-size:1.1em;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">South</button>
+        <button onclick="startAutoExplore(-1,0);closeAutoExploreDirPopup()" style="font-size:1.1em;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">West</button>
+      </div>
+      <button onclick="closeAutoExploreDirPopup()" style="font-size:1em;background:#ff4444;color:#fff;border:none;border-radius:7px;padding:6px 24px;cursor:pointer;">Cancel</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  // Restore last checkbox state
+  setTimeout(() => {
+    const cb = document.getElementById('auto-explore-auto-attack');
+    if (cb) cb.checked = autoExploreAutoAttack;
+    cb && cb.addEventListener('change', function() {
+      autoExploreAutoAttack = cb.checked;
+    });
+  }, 50);
+}
+function closeAutoExploreDirPopup() {
+  let popup = document.getElementById('auto-explore-dir-popup');
+  if (popup) popup.remove();
+}
+
+function startAutoExplore(dx, dy) {
+  autoExploreActive = true;
+  autoExploreDir = {dx, dy};
+  // Get checkbox value
+  const cb = document.getElementById('auto-explore-auto-attack');
+  autoExploreAutoAttack = cb ? cb.checked : autoExploreAutoAttack;
+  updateAutoExploreBtn(true);
+  autoExploreLoop();
+}
+
+function stopAutoExplore() {
+  autoExploreActive = false;
+  autoExploreDir = null;
+  if (autoExploreTimer) clearTimeout(autoExploreTimer);
+  updateAutoExploreBtn(false);
+}
+
+function updateAutoExploreBtn(active) {
+  const btn = document.getElementById('auto-explore-btn');
+  if (!btn) return;
+  if (active) {
+    btn.textContent = 'Stop Auto Explore';
+    btn.style.background = '#ff4444';
+    btn.style.color = '#fff';
+    btn.onclick = stopAutoExplore;
+  } else {
+    btn.textContent = 'Auto Explore';
+    btn.style.background = '#ffba3a';
+    btn.style.color = '#23252a';
+    btn.onclick = function() { showAutoExploreDirectionPopup(); };
+  }
+}
+
+function autoExploreLoop() {
+  if (!autoExploreActive || !autoExploreDir) return;
+  // If in combat or chest open, wait and retry
+  if (inCombat || chestOpen) {
+    autoExploreTimer = setTimeout(autoExploreLoop, 1200);
+    return;
+  }
+  // Try to move in direction
+  let nx = Math.max(0, Math.min(mapSize-1, playerPosition.x+autoExploreDir.dx));
+  let ny = Math.max(0, Math.min(mapSize-1, playerPosition.y+autoExploreDir.dy));
+  // If can't move further, stop
+  if (nx === playerPosition.x && ny === playerPosition.y) {
+    stopAutoExplore();
+    return;
+  }
+  playerPosition.x = nx;
+  playerPosition.y = ny;
+  discovered[ny][nx] = true;
+  renderMap();
+  let cell = mapData[ny][nx];
+  // Interactions: stop auto-explore, resume after
+  if (cell.type === "central-town") {
+    logMsg(`Arrived at <b>Central Town</b>.`);
+    stopAutoExplore();
+    return;
+  } else if (cell.type === "town") {
+    showTownPopup(cell.name);
+    logMsg(`Arrived at town: <b>${cell.name}</b>.`);
+    stopAutoExplore();
+    return;
+  } else if (cell.type === "chest") {
+    logMsg("You found a chest!");
+    openChest();
+    stopAutoExplore();
+    return;
+  } else if (!discovered[ny][nx]) {
+    logMsg("You entered a not discovered area.");
+  } else {
+    logMsg("You entered: <b>" + (cell.name || "a discovered area") + "</b>.");
+  }
+  // Random town events
+  if (cell.type === "town" && Math.random() < 0.5) {
+    triggerRandomTownEvent();
+    stopAutoExplore();
+    return;
+  }
+  // Random area events
+  if (cell.type === "area" && discovered[ny][nx] && Math.random() < 0.15) {
+    triggerRandomAreaEvent();
+    stopAutoExplore();
+    return;
+  }
+  // Enemy encounter: stop auto-explore, resume after
+  if (Math.random() < 0.22 && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
+    setTimeout(() => {
+      showEnemy();
+      // If auto-attack is enabled, auto attack until enemy defeated or player dies
+      if (autoExploreAutoAttack && currentEnemy && inCombat) {
+        autoAttackActive = true;
+        autoAttackLoopAutoExplore();
+      } else {
+        stopAutoExplore();
+      }
+    }, 350);
+    return;
+  }
+  // Continue auto-explore after short delay
+  autoExploreTimer = setTimeout(autoExploreLoop, 700);
+}
+
+// Auto-attack loop for auto-explore (does not stop auto-explore unless player dies or ancient boss)
+function autoAttackLoopAutoExplore() {
+  if (!autoAttackActive || !currentEnemy || !inCombat) {
+    stopAutoExplore();
+    return;
+  }
+  // If ancient boss, stop auto-explore and require manual input
+  if (currentEnemy.isBoss) {
+    stopAutoExplore();
+    return;
+  }
+  // Only attack if enemy and player are alive
+  if (currentEnemy.health > 0 && player.health > 0) {
+    attackEnemy();
+    setTimeout(() => {
+      if (currentEnemy && currentEnemy.health > 0 && player.health > 0 && inCombat && autoAttackActive) {
+        autoAttackLoopAutoExplore();
+      } else {
+        stopAutoExplore();
+      }
+    }, 900);
+  } else {
+    stopAutoExplore();
+  }
+}
+
+
 function doExplore() {
   if (!exploreDir) return;
   let nx = Math.max(0, Math.min(mapSize-1, playerPosition.x+exploreDir.dx));
@@ -2126,16 +2324,14 @@ function renderEquipment() {
     }
     eqLeft.innerHTML += `
       <div class="equip-slot${isAncient ? ' ancient-set' : ''}" onclick="handleEquipSlot('${slot}')" title="${slotData.label}">
-        <b>${slotData.label}:</b> <span class="item-name" style="max-width:70px;display:inline-block;vertical-align:middle;">${eq ? eq.name : "<em>none</em>"}</span>
-        <div class="slot-tooltip">
-          ${slotData.label}<br>
-          ${eq ? eq.name : "<em>none</em>"}
-          ${eq && eq.attackPower ? `<br>ATK: <b>+${eq.attackPower}</b>` : ""}
-          ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
-          ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
-          ${setBonus}
-        </div>
-      </div>
+       <b>${slotData.label}:</b> <span class="item-name">${eq ? eq.name.replace(/\s*\([^)]*\)/, "") : "<em>none</em>"}</span>
+  <div class="slot-tooltip">
+  ${eq ? eq.name.replace(/\s*\([^)]*\)/, "") : "<em>none</em>"}
+  ${eq && eq.attackPower ? `<br>ATK: <b>+${eq.attackPower}</b>` : ""}
+  ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
+  ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
+  ${setBonus}
+</div>
     `;
   });
   equipmentOrderRight.forEach((slotData) => {
@@ -2151,18 +2347,17 @@ function renderEquipment() {
       if (setCount === 5) setBonus += `<br><span style="color:#90ee90;">+60 DEF, +150 HP</span>`;
     }
     eqRight.innerHTML += `
-      <div class="equip-slot${isAncient ? ' ancient-set' : ''}" onclick="handleEquipSlot('${slot}')" title="${slotData.label}">
-        <b>${slotData.label}:</b> <span class="item-name" style="max-width:70px;display:inline-block;vertical-align:middle;">${eq ? eq.name : "<em>none</em>"}</span>
-        <div class="slot-tooltip">
-          ${slotData.label}<br>
-          ${eq ? eq.name : "<em>none</em>"}
-          ${eq && eq.attackPower ? `<br>ATK: <b>+${eq.attackPower}</b>` : ""}
-          ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
-          ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
-          ${setBonus}
-        </div>
-      </div>
-    `;
+  <div class="equip-slot${isAncient ? ' ancient-set' : ''}" onclick="handleEquipSlot('${slot}')" title="${slotData.label}">
+    <b>${slotData.label}:</b> <span class="item-name" style="max-width:70px;display:inline-block;vertical-align:middle;">${eq ? eq.name.replace(/\s*\([^)]*\)/, "") : "<em>none</em>"}</span>
+    <div class="slot-tooltip">
+      ${eq ? eq.name.replace(/\s*\([^)]*\)/, "") : "<em>none</em>"}
+      ${eq && eq.attackPower ? `<br>ATK: <b>+${eq.attackPower}</b>` : ""}
+      ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
+      ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
+      ${setBonus}
+    </div>
+  </div>
+ `;
   });
   document.getElementById('equipment-legend').textContent = "Click a slot to unequip";
 }
@@ -2205,7 +2400,7 @@ function renderBagInv() {
       content.innerHTML += `
         <div class="item-card${isAncient ? ' ancient-set' : ''}">
           ${item.type==="material" ? `<button class="bag-x-remove-btn" onclick="removeItem(${idx});event.stopPropagation()" title="Remove">&times;</button>` : ""}
-          <div class="item-name">${item.name}${item.count > 1 ? ` (x${item.count})` : ""}</div>
+          <div class="item-name">${item.name.replace(/\s*\([^)]*\)/, "")}${item.count > 1 ? ` (x${item.count})` : ""}</div>
           <div class="item-actions">
             ${item.type==="potion"||item.type==="consumable"||isHealingItem(item) ? `<button class="item-action-btn" onclick="useItem(${idx});event.stopPropagation()">Use</button>` : ""}
             ${isEquipable(item) ? `<button class="item-action-btn" onclick="equipItem(${idx});event.stopPropagation()">Equip</button>` : ""}
@@ -2238,7 +2433,7 @@ function renderBagInv() {
       content.innerHTML += `
         <div class="item-card${isAncient ? ' ancient-set' : ''}">
           <button class="bag-x-remove-btn" onclick="removeItem(${idx});event.stopPropagation()" title="Remove">&times;</button>
-          <div class="item-name">${item.name}${item.count > 1 ? ` (x${item.count})` : ""}</div>
+          <div class="item-name">${item.name.replace(/\s*\([^)]*\)/, "")}${item.count > 1 ? ` (x${item.count})` : ""}</div>
           <button class="bag-equip-btn" onclick="equipBagItem(${idx});event.stopPropagation()">Equip</button>
           <div class="item-tooltip" style="display:none;position:absolute;left:110%;top:50%;transform:translateY(-50%);background:#18191c;color:#eee;padding:7px 13px;border-radius:8px;border:1px solid #444;white-space:nowrap;font-size:0.98em;box-shadow:0 2px 10px #0007;z-index:10;min-width:160px;">
             <b>${item.name}</b>
@@ -3142,18 +3337,56 @@ function renderShopItems() {
   if (!window._shopItems) return;
   shopDiv.innerHTML = "";
   window._shopItems.forEach((item, idx) => {
-    // Only show stats inside the name (in parentheses), not repeated after
     shopDiv.innerHTML += `
-      <div style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-        <div><b>${item.name}</b></div>
+      <div class="shop-item-card" style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;position:relative;cursor:pointer;">
+        <b>${item.name.replace(/\s*\([^)]*\)/, "")}</b>
         <div>
           <span style="color:gold;font-weight:bold;">${item.price} Gold</span>
           <button onclick="buyShopItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button>
         </div>
+        <div class="shop-item-tooltip" style="display:none;position:absolute;left:110%;top:50%;transform:translateY(-50%);background:#18191c;color:#eee;padding:7px 13px;border-radius:8px;border:1px solid #444;white-space:nowrap;font-size:0.98em;box-shadow:0 2px 10px #0007;z-index:20;min-width:160px;">
+          ${getShopItemTooltip(item)}
+        </div>
       </div>
     `;
   });
+  function getShopItemTooltip(item) {
+    let lines = [];
+    lines.push(`<b>${item.name.replace(/\s*\([^)]*\)/, "")}</b>`);
+    if (item.description) lines.push(`<span style="color:#aaa;">${item.description}</span>`);
+    if (item.attackPower) lines.push(`ATK: <b>+${item.attackPower}</b>`);
+    if (item.defense) lines.push(`DEF: <b>+${item.defense}</b>`);
+    if (item.health) lines.push(`HP: <b>+${item.health}</b>`);
+    if (item.heal) lines.push(`Heals: <b>+${item.heal}</b>`);
+    if (item.count && item.type === "arrows") lines.push(`Arrows: <b>x${item.count}</b>`);
+    if (item.type) lines.push(`<span style="color:#ffba3a;">Type: ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>`);
+    return lines.join('<br>');
+  }
+
+  // Add hover logic for tooltips
+  const cards = shopDiv.querySelectorAll('.shop-item-card');
+  cards.forEach(card => {
+    const tip = card.querySelector('.shop-item-tooltip');
+    card.onmouseenter = () => { if (tip) tip.style.display = 'block'; };
+    card.onmouseleave = () => { if (tip) tip.style.display = 'none'; };
+    card.onmousemove = (e) => {
+      if (tip) {
+        tip.style.left = (e.offsetX + 30) + 'px';
+        tip.style.top = (e.offsetY - 10) + 'px';
+      }
+    };
+  });
 }
+
+// --- PATCH: Remove ( ... ) from item names when adding to inventory/bag ---
+const origAddItem = addItem;
+addItem = function(item) {
+  // Remove ( ... ) from item name for display in bag/inventory
+  if (item && typeof item.name === "string") {
+    item.name = item.name.replace(/\s*\([^)]*\)/, "");
+  }
+  origAddItem(item);
+};
 function buyShopItem(idx) {
   let item = window._shopItems[idx];
   if (player.gold < item.price) {
@@ -3820,7 +4053,8 @@ const panelLocations = [
   { id: 'bank', name: 'Bank' },
   { id: 'map', name: 'Map' },
   { id: 'shop', name: 'Shop' },
-  { id: 'log-panel', name: 'Game Log' }
+  { id: 'log-panel', name: 'Game Log' },
+  { id: 'prayer-panel', name: 'Prayer Panel' }
 ];
 
 // Add the "Panel Locations" button to the bottom left of the main UI
@@ -3925,8 +4159,420 @@ function renderPanelLocationsList() {
 
 // Expose movePanelToColumn globally for dropdown onchange
 window.movePanelToColumn = movePanelToColumn;
+/*
+  --- PRAYER STAT & UI PANEL ---
+  Adds a prayer stat (default 50/50) to player stats, and a separate prayer panel (menu) below player stats.
+  Adds two prayers: Deflect (🗡️) and Heal (+). Heal prayer restores +10 health after each enemy turn.
+*/
 
-        
+// 1. Add prayer stat to player object (default 50/50)
+if (typeof player.prayer !== "number") player.prayer = 50;
+if (typeof player.maxPrayer !== "number") player.maxPrayer = 50;
+
+// 2. Patch renderPlayerStats to always show prayer stat in the stats list (no clickable UI here)
+const origRenderPlayerStats = renderPlayerStats;
+renderPlayerStats = function() {
+  origRenderPlayerStats();
+  // Add or update prayer stat row (just numbers, no button)
+  const ul = document.getElementById('player-stats-ul');
+  let prayerLi = ul ? ul.querySelector('.prayer-li') : null;
+  if (!prayerLi && ul) {
+    prayerLi = document.createElement('li');
+    prayerLi.className = 'prayer-li';
+    prayerLi.innerHTML = `<span class="prayer" style="color:#6cf;font-weight:bold;">Prayer:</span> <span id="prayer-label">${player.prayer}/${player.maxPrayer}</span>`;
+    ul.appendChild(prayerLi);
+  } else if (prayerLi) {
+    const prayerLabel = prayerLi.querySelector('#prayer-label');
+    if (prayerLabel) prayerLabel.textContent = `${player.prayer}/${player.maxPrayer}`;
+  }
+};
+
+// 3. Add separate Prayer Panel below player stats panel (like a menu/panel)
+(function() {
+  if (!document.getElementById('prayer-panel')) {
+    const prayerPanel = document.createElement('div');
+    prayerPanel.id = 'prayer-panel';
+    prayerPanel.className = 'panel';
+    prayerPanel.style = 'margin-top:8px;background:#292c31;border-radius:10px;padding:16px;box-shadow:0 2px 10px #000a;';
+    prayerPanel.innerHTML = `
+      <h2 style="color:#6cf;">Prayer</h2>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button id="prayer-deflect-btn" title="Deflect Attack" style="background:#23252a;border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5em;transition:background 0.18s;">
+          <span id="prayer-deflect-icon" style="color:#aaa;">🗡️</span>
+        </button>
+        <button id="prayer-heal-btn" title="Heal Over Time" style="background:#23252a;border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5em;transition:background 0.18s;">
+          <span id="prayer-heal-icon" style="color:#aaa;">+</span>
+        </button>
+        <span id="prayer-countdown" style="color:#6cf;font-weight:bold;font-size:1.1em;">${player.prayer}/${player.maxPrayer}</span>
+        <span id="prayer-status-label" style="color:#aaa;font-size:0.98em;"></span>
+      </div>
+    `;
+    // Insert after player stats panel
+    const statsPanel = document.getElementById('player-stats');
+    if (statsPanel && statsPanel.parentNode) {
+      statsPanel.parentNode.insertBefore(prayerPanel, statsPanel.nextSibling);
+    }
+  }
+})();
+
+// 4. Prayer logic
+let prayerDeflectActive = false;
+let prayerHealActive = false;
+let prayerInterval = null;
+
+// Tooltip logic for prayers
+function showPrayerTooltip(btnId, text) {
+  let btn = document.getElementById(btnId);
+  if (!btn) return;
+  let tip = document.createElement('div');
+  tip.className = 'prayer-tooltip';
+  tip.style.position = 'absolute';
+  tip.style.left = '50%';
+  tip.style.top = '110%';
+  tip.style.transform = 'translateX(-50%)';
+  tip.style.background = '#18191c';
+  tip.style.color = '#eee';
+  tip.style.padding = '8px 16px';
+  tip.style.borderRadius = '8px';
+  tip.style.border = '1px solid #444';
+  tip.style.whiteSpace = 'nowrap';
+  tip.style.fontSize = '1em';
+  tip.style.boxShadow = '0 2px 10px #0007';
+  tip.style.zIndex = '9999';
+  tip.innerHTML = text;
+  btn.appendChild(tip);
+  btn._prayerTip = tip;
+}
+function hidePrayerTooltip(btnId) {
+  let btn = document.getElementById(btnId);
+  if (btn && btn._prayerTip) {
+    btn.removeChild(btn._prayerTip);
+    btn._prayerTip = null;
+  }
+}
+
+function getPrayerDrainRate() {
+  let activeCount = (prayerDeflectActive ? 1 : 0) + (prayerHealActive ? 1 : 0);
+  return activeCount === 2 ? "1%" : activeCount === 1 ? "0.5%" : "0%";
+}
+
+function updatePrayerUI() {
+  // Update prayer panel layout and status
+  const panel = document.getElementById('prayer-panel');
+  if (!panel) return;
+  panel.innerHTML = `
+    <h2 style="color:#6cf;">Prayer</h2>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;position:relative;">
+      <button id="prayer-deflect-btn" title="Deflect Attack" style="background:${prayerDeflectActive ? '#232' : '#23252a'};border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5em;transition:background 0.18s;position:relative;">
+        <span id="prayer-deflect-icon" style="color:${prayerDeflectActive ? '#2ecc40' : '#aaa'};">🗡️</span>
+      </button>
+      <button id="prayer-heal-btn" title="Heal Over Time" style="background:${prayerHealActive ? '#232' : '#23252a'};border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5em;transition:background 0.18s;position:relative;">
+        <span id="prayer-heal-icon" style="color:${prayerHealActive ? '#2ecc40' : '#aaa'};">❤️</span>
+      </button>
+      <span id="prayer-countdown" style="color:${(prayerDeflectActive||prayerHealActive) ? '#2ecc40' : '#6cf'};font-weight:bold;font-size:1.1em;">
+        ${player.prayer}/${player.maxPrayer}
+      </span>
+      <span id="prayer-status-label" style="color:#aaa;font-weight:bold;font-size:1.1em;">
+        ${prayerDeflectActive ? 'Deflect Active' : ''}${prayerDeflectActive && prayerHealActive ? ' & ' : ''}${prayerHealActive ? 'Heal Active' : ''}
+        ${!prayerDeflectActive && !prayerHealActive ? 'Inactive' : ''}
+      </span>
+    </div>
+    <div style="color:#aaa;font-size:0.98em;">
+      Prayer drain rate: <b>${getPrayerDrainRate()}</b> per tick
+    </div>
+  `;
+  // Remove old tooltips if any
+  hidePrayerTooltip('prayer-deflect-btn');
+  hidePrayerTooltip('prayer-heal-btn');
+  // Attach hover logic for tooltips
+  const deflectBtn = document.getElementById('prayer-deflect-btn');
+  const healBtn = document.getElementById('prayer-heal-btn');
+  if (deflectBtn) {
+    deflectBtn.onmouseenter = function() {
+      showPrayerTooltip('prayer-deflect-btn', `Deflect: Negates half enemy damage.<br>Drain rate: 0.5% per tick if active.`);
+    };
+    deflectBtn.onmouseleave = function() {
+      hidePrayerTooltip('prayer-deflect-btn');
+    };
+  }
+  if (healBtn) {
+    healBtn.onmouseenter = function() {
+      showPrayerTooltip('prayer-heal-btn', `Heal: Restores 50 health after each enemy turn.<br>Drain rate: 0.5% per tick if active.`);
+    };
+    healBtn.onmouseleave = function() {
+      hidePrayerTooltip('prayer-heal-btn');
+    };
+  }
+  // Toggle logic
+  if (deflectBtn) deflectBtn.onclick = function() {
+    prayerDeflectActive = !prayerDeflectActive;
+    if (prayerDeflectActive && prayerHealActive && player.prayer <= 0) {
+      prayerDeflectActive = false;
+      prayerHealActive = false;
+    }
+    updatePrayerUI();
+    handlePrayerInterval();
+  };
+  if (healBtn) healBtn.onclick = function() {
+    prayerHealActive = !prayerHealActive;
+    if (prayerDeflectActive && prayerHealActive && player.prayer <= 0) {
+      prayerDeflectActive = false;
+      prayerHealActive = false;
+    }
+    updatePrayerUI();
+    handlePrayerInterval();
+  };
+  // Also update player stats prayer label
+  const prayerLabel = document.getElementById('prayer-label');
+  if (prayerLabel) prayerLabel.textContent = `${player.prayer}/${player.maxPrayer}`;
+}
+function handlePrayerInterval() {
+  // Only drain prayer if any prayer is active
+  if ((prayerDeflectActive || prayerHealActive) && player.prayer > 0) {
+    if (!prayerInterval) {
+      prayerInterval = setInterval(() => {
+        if (!(prayerDeflectActive || prayerHealActive)) return;
+        if (player.prayer > 0) {
+          // Drain rate: 0.5% per prayer per tick
+          let drain = 0;
+          if (prayerDeflectActive) drain += 0.5;
+          if (prayerHealActive) drain += 0.5;
+          // Convert percent to actual prayer points (maxPrayer * drain%)
+          let drainAmount = Math.max(1, Math.floor(player.maxPrayer * (drain / 100)));
+          player.prayer = Math.max(0, player.prayer - drainAmount);
+          updatePrayerUI();
+          checkPrayerZero();
+        }
+        if (player.prayer <= 0) {
+          prayerDeflectActive = false;
+          prayerHealActive = false;
+          updatePrayerUI();
+          clearInterval(prayerInterval);
+          prayerInterval = null;
+        }
+      }, 700);
+    }
+  } else {
+    if (prayerInterval) {
+      clearInterval(prayerInterval);
+      prayerInterval = null;
+    }
+  }
+}
+updatePrayerUI();
+
+// 5. Patch enemyAttack to deflect half damage if prayerDeflectActive and heal +10 if prayerHealActive
+const origEnemyAttack = enemyAttack;
+enemyAttack = function() {
+  if (!currentEnemy || !inCombat) return;
+  let pDef = getTotalDefense();
+  let min = currentEnemy.minAttack;
+  let max = currentEnemy.maxAttack;
+  let eHit = Math.max(0, Math.floor(min + Math.random()*(max-min+1)) - Math.floor(pDef/3));
+  // Prayer deflect logic
+  if (prayerDeflectActive && player.prayer > 0) {
+    let deflected = Math.ceil(eHit / 2);
+    eHit = eHit - deflected;
+    logMsg(`<span style="color:#2ecc40;font-weight:bold;">Prayer Deflect: Negated ${deflected} damage!</span>`);
+    updatePrayerUI();
+    checkPrayerZero();
+  }
+  player.health = Math.max(0, player.health - eHit);
+  logMsg(`<span style="color:#f66">The ${currentEnemy.name} hits you for <b>${eHit}</b>!</span>`);
+  // Heal prayer logic: heal 50 after enemy turn
+  if (prayerHealActive && player.prayer > 0 && player.health > 0) {
+    let maxHeal = getTotalMaxHealth();
+    let healed = Math.min(50, maxHeal - player.health);
+    if (healed > 0) {
+      player.health += healed;
+      logMsg(`<span style="color:#2ecc40;font-weight:bold;">Prayer Heal: Restored ${healed} health!</span>`);
+    }
+    updatePrayerUI();
+    checkPrayerZero();
+  }
+  renderPlayerStats();
+  if (player.health <= 0) {
+    logMsg(`<span style="color:#f44;font-weight:bold;">You died! Respawning at town...</span>`);
+    respawnPlayer();
+    clearEnemy();
+  }
+};
+
+// 6. Restore prayer only on respawn (not after every battle or level up)
+const origRespawnPlayer = respawnPlayer;
+respawnPlayer = function() {
+  player.prayer = player.maxPrayer;
+  prayerDeflectActive = false;
+  prayerHealActive = false;
+  updatePrayerUI();
+  origRespawnPlayer();
+};
+// Do NOT reset prayer on level up
+const origCheckLevelUp = checkLevelUp;
+checkLevelUp = function() {
+  origCheckLevelUp();
+  updatePrayerUI();
+};
+
+// 7. Update prayer UI on game load/start
+window.addEventListener('DOMContentLoaded', updatePrayerUI);
+document.getElementById('username-submit').addEventListener('click', updatePrayerUI);
+
+// 8. Add logic to ensure prayer does not reset after each explore, and reacts appropriately at 0
+
+// Remove any code that resets prayer on explore or movement
+// (No code in your explore/movePlayer/doExplore resets prayer, so nothing to remove)
+
+// Patch explore, movePlayer, doExplore to NOT reset prayer
+// Already handled: prayer only resets on respawn/level up
+
+// Ensure prayer reacts appropriately at 0 (disable prayers, update UI)
+function checkPrayerZero() {
+  if (player.prayer <= 0) {
+    player.prayer = 0;
+    prayerDeflectActive = false;
+    prayerHealActive = false;
+    updatePrayerUI();
+    if (prayerInterval) { clearInterval(prayerInterval); prayerInterval = null; }
+    logMsg('<span style="color:#6cf;font-weight:bold;">Prayer depleted! All prayers disabled.</span>');
+  }
+}
+
+// Patch all places where prayer is decremented to call checkPrayerZero
+let enemyTurnCounter = 0;
+const origEnemyAttack2 = enemyAttack;
+enemyAttack = function() {
+  if (!currentEnemy || !inCombat) return;
+  let pDef = getTotalDefense();
+  let min = currentEnemy.minAttack;
+  let max = currentEnemy.maxAttack;
+  let eHit = Math.max(0, Math.floor(min + Math.random()*(max-min+1)) - Math.floor(pDef/3));
+  // Prayer deflect logic
+  if (prayerDeflectActive && player.prayer > 0) {
+    let deflected = Math.ceil(eHit / 2);
+    eHit = eHit - deflected;
+    logMsg(`<span style="color:#2ecc40;font-weight:bold;">Prayer Deflect: Negated ${deflected} damage!</span>`);
+    updatePrayerUI();
+    checkPrayerZero();
+  }
+  player.health = Math.max(0, player.health - eHit);
+  logMsg(`<span style="color:#f66">The ${currentEnemy.name} hits you for <b>${eHit}</b>!</span>`);
+  // Heal prayer logic: heal 50 after every 5 enemy turns
+  if (prayerHealActive && player.prayer > 0 && player.health > 0) {
+    enemyTurnCounter = (enemyTurnCounter || 0) + 1;
+    if (enemyTurnCounter % 5 === 0) {
+      let maxHeal = getTotalMaxHealth();
+      let healed = Math.min(50, maxHeal - player.health);
+      if (healed > 0) {
+        player.health += healed;
+        logMsg(`<span style="color:#2ecc40;font-weight:bold;">Prayer Heal: Restored ${healed} health!</span>`);
+      }
+      updatePrayerUI();
+      checkPrayerZero();
+    }
+  }
+  renderPlayerStats();
+  if (player.health <= 0) {
+    logMsg(`<span style="color:#f44;font-weight:bold;">You died! Respawning at town...</span>`);
+    respawnPlayer();
+    clearEnemy();
+    enemyTurnCounter = 0;
+  }
+};
+
+// Patch prayerInterval drain to call checkPrayerZero
+function handlePrayerInterval() {
+  // Only drain prayer if any prayer is active
+  if ((prayerDeflectActive || prayerHealActive) && player.prayer > 0) {
+    if (!prayerInterval) {
+      prayerInterval = setInterval(() => {
+        if (!(prayerDeflectActive || prayerHealActive)) return;
+        if (player.prayer > 0) {
+          // Drain rate: 0.5% per prayer per tick
+          let drain = 0;
+          if (prayerDeflectActive) drain += 0.5;
+          if (prayerHealActive) drain += 0.5;
+          let drainAmount = Math.max(1, Math.floor(player.maxPrayer * (drain / 100)));
+          player.prayer = Math.max(0, player.prayer - drainAmount);
+          updatePrayerUI();
+          checkPrayerZero();
+        }
+        if (player.prayer <= 0) {
+          prayerDeflectActive = false;
+          prayerHealActive = false;
+          updatePrayerUI();
+          clearInterval(prayerInterval);
+          prayerInterval = null;
+        }
+      }, 700);
+    }
+  } else {
+    if (prayerInterval) {
+      clearInterval(prayerInterval);
+      prayerInterval = null;
+    }
+  }
+}
+
+// Prayer only resets on respawn/level up (already handled above)
+(function() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #prayer-panel { margin-top:8px; }
+    #prayer-deflect-btn, #prayer-heal-btn { transition:background 0.18s; }
+    #prayer-deflect-btn:active, #prayer-heal-btn:active { box-shadow:0 0 8px #2ecc40; }
+    #prayer-deflect-icon, #prayer-heal-icon { transition:color 0.18s; }
+    #prayer-countdown { font-weight:bold; }
+    .prayer-tooltip {
+      pointer-events: none;
+      opacity: 0.98;
+      transition: opacity 0.12s;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // --- PRAYER ALTAR UI ---
+  if (!document.getElementById('prayer-altar-panel')) {
+    const altarPanel = document.createElement('div');
+    altarPanel.id = 'prayer-altar-panel';
+    altarPanel.className = 'panel';
+    altarPanel.style = 'margin-top:12px;background:#292c31;border-radius:10px;padding:16px;box-shadow:0 2px 10px #000a;display:flex;flex-direction:column;align-items:center;';
+    altarPanel.innerHTML = `
+      <div style="margin-bottom:10px;">
+        <img src="assets/images/altar.png" alt="Prayer Altar" style="width:300px;height:90px;object-fit:cover;border-radius:8px;box-shadow:0 2px 12px #0007;">
+      </div>
+      <button id="renew-prayer-btn" style="font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
+      <div id="renew-prayer-msg" style="margin-top:10px;color:#6cf;font-size:1em;display:none;"></div>
+      <audio id="prayer-renew-audio" src="assets/audio/prayer.mp3" preload="auto"></audio>
+    `;
+    // Insert below prayer panel
+    const prayerPanel = document.getElementById('prayer-panel');
+    if (prayerPanel && prayerPanel.parentNode) {
+      prayerPanel.parentNode.insertBefore(altarPanel, prayerPanel.nextSibling);
+    }
+    // Renew Prayer button logic
+    document.getElementById('renew-prayer-btn').onclick = function() {
+      player.prayer = player.maxPrayer;
+      updatePrayerUI();
+      renderPlayerStats();
+      const msg = document.getElementById('renew-prayer-msg');
+      msg.textContent = 'Your prayer has been renewed!';
+      msg.style.display = 'block';
+      setTimeout(() => { msg.style.display = 'none'; }, 1800);
+      // Play sound
+      const audio = document.getElementById('prayer-renew-audio');
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          document.body.addEventListener('click', () => audio.play(), { once: true });
+        });
+      }
+    };
+  }
+
+
+
+})();
 </script>
 </body>
 </html>
