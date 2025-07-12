@@ -2798,30 +2798,10 @@ if (!document.getElementById('special-seller-popup')) {
       <div><span style="color:gold;font-weight:bold;">${item.price} Gold</span> <button onclick="buySpecialSellerItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button></div>
     </div>`;
   });
-  window._specialSellerItems = specialItems;
-  document.getElementById('special-seller-items').innerHTML = html;
-  document.getElementById('special-seller-popup').style.display = 'flex';
+
 };
 
-// Ensure buySpecialSellerItem is globally available and works
-window.buySpecialSellerItem = function(itemIndex) {
-  let item = window._specialSellerItems[itemIndex];
-  if (!item) return;
-  if (player.gold < item.price) {
-    logMsg('Not enough gold!');
-    return;
-  }
-  player.gold -= item.price;
-  addItem(JSON.parse(JSON.stringify(item)));
-  logMsg(`Bought ${item.name} for ${item.price} gold from the Special Seller.`);
-  renderPlayerStats();
-  closeSpecialSeller();
-};
 
-// Ensure closeSpecialSeller is globally available
-window.closeSpecialSeller = function() {
-  document.getElementById('special-seller-popup').style.display = 'none';
-};
 let lastTownVisited = null;
 function showTownPopup(townName) {
   lastTownVisited = townName;
