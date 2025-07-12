@@ -4544,7 +4544,7 @@ function handlePrayerInterval() {
       </div>
       <button id="renew-prayer-btn" style="font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
       <div id="renew-prayer-msg" style="margin-top:10px;color:#6cf;font-size:1em;display:none;"></div>
-      <audio id="prayer-renew-audio" src="assets/audio/prayer.mp3" preload="auto"></audio>
+      <audio id="prayer-audio" src="assets/audio/prayer.mp3.mp3" preload="auto"></audio>
     `;
     // Insert below prayer panel
     const prayerPanel = document.getElementById('prayer-panel');
@@ -4561,7 +4561,7 @@ function handlePrayerInterval() {
       msg.style.display = 'block';
       setTimeout(() => { msg.style.display = 'none'; }, 1800);
       // Play sound
-      const audio = document.getElementById('prayer-renew-audio');
+      const audio = document.getElementById('prayer-audio');
       if (audio) {
         audio.currentTime = 0;
         audio.play().catch(() => {
@@ -4570,6 +4570,8 @@ function handlePrayerInterval() {
       }
     };
   }
+
+
 
 
 
