@@ -118,9 +118,19 @@
     letter-spacing: 1px;
   }
   </style>
-  <!-- Top left bar -->
-  <div id="top-left-bar">
+  <!-- Top left bar (only show on intro overlay and username overlay) -->
+  <div id="top-left-bar" style="display:none;"></div>
+  <div id="date-overlay-ui">
     <span id="update-date-label"></span>
+    <select id="update-date-dropdown" style="margin-left:10px;">
+      <option value="">Select a date...</option>
+      <option value="__add__" style="color:#ffba3a;">➕ Add Date...</option>
+    </select>
+    <label style="margin-left:10px;font-size:0.98em;">
+      <input type="checkbox" id="enable-remove-dates" style="vertical-align:middle;margin-right:4px;">
+      Remove Dates
+    </label>
+  </div>
   </div>
   <script>
     // Set update date to today's date
@@ -128,7 +138,124 @@
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
-    document.getElementById('update-date-label').textContent = `Last Updated on : ${mm}-${dd}-${yyyy}`;
+
+    function getSelectedDate() {
+      return localStorage.getItem('selectedUpdateDate') || '';
+    }
+    function setSelectedDate(date) {
+      localStorage.setItem('selectedUpdateDate', date);
+    }
+    function getStoredDates() {
+      try {
+        return JSON.parse(localStorage.getItem('updateDates')) || [];
+      } catch {
+        return [];
+      }
+    }
+    function setStoredDates(dates) {
+      localStorage.setItem('updateDates', JSON.stringify(dates));
+    }
+    function renderDateDropdown() {
+      const dropdown = document.getElementById('update-date-dropdown');
+      dropdown.innerHTML = '<option value="">Select a date...</option>';
+      getStoredDates().forEach(date => {
+        const opt = document.createElement('option');
+        opt.value = date;
+        opt.textContent = date;
+        dropdown.appendChild(opt);
+      });
+      const addOpt = document.createElement('option');
+      addOpt.value = "__add__";
+      addOpt.textContent = "➕ Add Date...";
+      addOpt.style.color = "#ffba3a";
+      dropdown.appendChild(addOpt);
+      const selected = getSelectedDate();
+      if (selected) dropdown.value = selected;
+    }
+    function updateDateLabel() {
+      const selected = getSelectedDate();
+      document.getElementById('update-date-label').textContent =
+        `Last Updated on : ${selected || `${mm}-${dd}-${yyyy}`}`;
+    }
+    document.getElementById('update-date-dropdown').onchange = function() {
+      const removeMode = document.getElementById('enable-remove-dates').checked;
+      if (this.value === "__add__") {
+        const dateStr = prompt('Enter a date (MM-DD-YYYY):', `${mm}-${dd}-${yyyy}`);
+        if (!dateStr) {
+          this.value = getSelectedDate() || "";
+          return;
+        }
+        const dates = getStoredDates();
+        if (!dates.includes(dateStr)) {
+          dates.push(dateStr);
+          setStoredDates(dates);
+          setSelectedDate(dateStr);
+          renderDateDropdown();
+          this.value = dateStr;
+        } else {
+          setSelectedDate(dateStr);
+          this.value = dateStr;
+        }
+        updateDateLabel();
+      } else if (removeMode && this.value) {
+        if (confirm(`Remove date "${this.value}"?`)) {
+          let dates = getStoredDates().filter(d => d !== this.value);
+          setStoredDates(dates);
+          if (getSelectedDate() === this.value) setSelectedDate('');
+          renderDateDropdown();
+          this.value = "";
+          updateDateLabel();
+        }
+      } else if (this.value) {
+        setSelectedDate(this.value);
+        updateDateLabel();
+      }
+    };
+    document.getElementById('enable-remove-dates').onchange = function() {
+      const dropdown = document.getElementById('update-date-dropdown');
+      dropdown.style.background = this.checked ? "#ffdddd" : "";
+    };
+    renderDateDropdown();
+    updateDateLabel();
+
+    // Only show top-left-bar on intro overlay, hide on other overlays
+    function updateTopLeftBarVisibility() {
+      const intro = document.getElementById('intro-overlay');
+      const bar = document.getElementById('top-left-bar');
+      // Only show if intro overlay is visible and all other overlays are hidden
+      const overlays = [
+        'username-overlay', 'bank-modal-bg', 'special-seller-popup', 'town-popup',
+        'ancient-boss-popup', 'multi-use-popup', 'panel-locations-popup'
+      ];
+      let otherVisible = overlays.some(id => {
+        const el = document.getElementById(id);
+        return el && el.style.display !== 'none' && el.style.display !== '';
+      });
+      if (intro && bar) {
+        if (intro.style.display !== 'none' && !otherVisible) {
+          bar.style.display = 'flex';
+        } else {
+          bar.style.display = 'none';
+        }
+      }
+    }
+    document.addEventListener('DOMContentLoaded', updateTopLeftBarVisibility);
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('accept-fate-btn');
+      if (btn) {
+        btn.addEventListener('click', function() {
+          updateTopLeftBarVisibility();
+        });
+      }
+    });
+    // Observe intro overlay and other overlays for display changes
+    ['intro-overlay', 'username-overlay', 'bank-modal-bg', 'special-seller-popup', 'town-popup', 'ancient-boss-popup', 'multi-use-popup', 'panel-locations-popup'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        const observer = new MutationObserver(updateTopLeftBarVisibility);
+        observer.observe(el, { attributes: true, attributeFilter: ['style'] });
+      }
+    });
   </script>
 <!-- Original intro overlay code below -->
 <div id="intro-overlay">
@@ -178,7 +305,7 @@
     // Hide overlays and buttons
     [
       'bank-modal-bg', 'special-seller-popup', 'town-popup', 'ancient-boss-popup', 'multi-use-popup', 'panel-locations-popup', 'prayer-panel', 'prayer-altar-panel',
-      'main-save-ui', 'explore-bar', 'direction-select-bar', 'panel-locations-btn'
+      'main-save-ui', 'explore-bar', 'direction-select-bar', 'panel-locations-btn', 'top-left-bar'
     ].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
@@ -1411,6 +1538,41 @@
       z-index: 1;
     }
   </style>
+  <script>
+    // Show date overlay UI only on intro overlay, hide on all other overlays
+    function updateDateOverlayVisibility() {
+      var dateOverlay = document.getElementById('date-overlay-ui');
+      var introOverlay = document.getElementById('intro-overlay');
+      // List of overlays that should hide the date overlay
+      var overlays = [
+        'username-overlay', 'bank-modal-bg', 'special-seller-popup', 'town-popup',
+        'ancient-boss-popup', 'multi-use-popup', 'panel-locations-popup'
+      ];
+      var otherVisible = overlays.some(function(id) {
+        var el = document.getElementById(id);
+        return el && el.style.display !== 'none' && el.style.display !== '';
+      });
+      if (dateOverlay) {
+        if (introOverlay && introOverlay.style.display !== 'none' && !otherVisible) {
+          dateOverlay.style.display = '';
+        } else {
+          dateOverlay.style.display = 'none';
+        }
+      }
+    }
+    document.addEventListener('DOMContentLoaded', updateDateOverlayVisibility);
+    // Observe overlays for display changes
+    [
+      'intro-overlay', 'username-overlay', 'bank-modal-bg', 'special-seller-popup', 'town-popup',
+      'ancient-boss-popup', 'multi-use-popup', 'panel-locations-popup'
+    ].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        var observer = new MutationObserver(updateDateOverlayVisibility);
+        observer.observe(el, { attributes: true, attributeFilter: ['style'] });
+      }
+    });
+  </script>
 </head>
 <body style="margin:0;padding:0;">
 <canvas id="flame-bg"></canvas>
@@ -5119,3 +5281,5 @@ if (mainLoadInput) {
 </script>
 </body>
 </html>
+<!-- Remove or comment out this line to hide the date overlay UI -->
+<!-- <div id="date-overlay-ui"> ... </div> -->
