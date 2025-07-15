@@ -5052,29 +5052,29 @@ function handlePrayerInterval() {
   `;
   document.head.appendChild(style);
 
-  // --- PRAYER ALTAR UI ---
-  if (!document.getElementById('prayer-altar-panel')) {
-    const altarPanel = document.createElement('div');
-    altarPanel.id = 'prayer-altar-panel';
-    altarPanel.className = 'panel';
-    altarPanel.style = `
-      margin-top:12px;
-      background: #292c31 url('https://static.wikia.nocookie.net/runescape2/images/0/06/Chaos_altar.png/revision/latest?cb=20131227214625') center/cover no-repeat;
-      background-size: 45%;
-      background-position: center;
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      padding:16px;
-      box-shadow:0 20px 20px #000a;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      margin-left:auto;
-      margin-right:auto;
-    `;
-    altarPanel.innerHTML = `
+ // --- PRAYER ALTAR UI ---
+// Check if the altar panel already exists
+if (!document.getElementById('prayer-altar-panel')) {
+  const altarPanel = document.createElement('div');
+  altarPanel.id = 'prayer-altar-panel';
+  altarPanel.className = 'panel';
+  altarPanel.style.display = 'flex'; // Make sure it's visible
+
+  // Set background image and styles
+  altarPanel.style.background = "#292c31 url('https://static.wikia.nocookie.net/runescape2/images/0/06/Chaos_altar.png/revision/latest?cb=20131227214625') center/cover no-repeat";
+  altarPanel.style.backgroundSize = "45%";
+  altarPanel.style.backgroundPosition = "center";
+  altarPanel.style.width = "220px";
+  altarPanel.style.height = "220px";
+  altarPanel.style.borderRadius = "50%";
+  altarPanel.style.padding = "16px";
+  altarPanel.style.boxShadow = "0 20px 20px #000a";
+  altarPanel.style.flexDirection = "column";
+  altarPanel.style.alignItems = "center";
+  altarPanel.style.marginTop = "12px";
+  altarPanel.style.marginRight = "auto";
+  altarPanel.style.marginLeft = "auto";
+  altarPanel.innerHTML = `
       <div style="margin-bottom:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
         <button id="renew-prayer-btn" style="margin-bottom:18px;font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
         <div style="height:125px;"></div>
