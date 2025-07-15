@@ -4,8 +4,250 @@
 <head>
 <link href="favicon.ico" rel="icon" type="image/x-icon"/>
 <meta charset="utf-8"/>
+<!-- Life Story / Intro Interface -->
+<style>
+  #intro-overlay {
+    position: fixed;
+    z-index: 4000;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: linear-gradient(135deg, #191a1e 60%, #23252a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image:
+      url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 120px #23252a inset;
+  }
+  #intro-overlay::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: linear-gradient(120deg, #23252aee 60%, #191a1e99 100%);
+    z-index: 1;
+    pointer-events: none;
+    animation: woodsMist 8s linear infinite alternate;
+  }
+  @keyframes woodsMist {
+    0% { opacity: 0.7; }
+    100% { opacity: 0.9; }
+  }
+  #intro-overlay > div {
+    position: relative;
+    z-index: 2;
+    background: #23252ae6;
+    padding: 48px 54px 38px 54px;
+    border-radius: 28px;
+    box-shadow: 0 4px 32px #ffba3a33, 0 2px 24px #000a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 680px;
+    width: 90vw;
+    backdrop-filter: blur(2px);
+  }
+  #intro-title {
+    color: #ffba3a;
+    font-size: 2.1em;
+    font-weight: bold;
+    margin-bottom: 18px;
+    text-shadow: 0 2px 8px #23252a88, 0 0 4px #fff;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  #intro-story {
+    color: #eee;
+    font-size: 1.15em;
+    margin-bottom: 28px;
+    line-height: 1.6;
+    text-align: left;
+    max-width: 600px;
+  }
+  #accept-fate-btn {
+    font-size: 1.15em;
+    font-weight: bold;
+    background: linear-gradient(90deg,#ffba3a 70%,#23252a 100%);
+    color: #23252a;
+    border: none;
+    border-radius: 9px;
+    padding: 12px 38px;
+    cursor: pointer;
+    box-shadow: 0 2px 14px #ffba3a88;
+    transition: background 0.18s, color 0.18s;
+    margin-top: 18px;
+    letter-spacing: 1.5px;
+    /* Pulsating glow effect */
+    position: relative;
+    animation: fateGlow 1.5s infinite alternate;
+  }
+  #accept-fate-btn:hover {
+    background: #ffd36b;
+    color: #111;
+  }
+  @keyframes fateGlow {
+    0% {
+      box-shadow: 0 0 18px #ffba3a88, 0 0 32px #ffe06644;
+    }
+    100% {
+      box-shadow: 0 0 38px #ffba3acc, 0 0 64px #ffe06699;
+    }
+  }
+  #top-left-bar {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 2200;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    border-radius: 10px;
+    padding: 7px 16px;
+
+    font-size: 1em;
+    min-width: 220px;
+    user-select: none;
+  }
+  #update-date-label {
+    color: #ffd36b;
+    font-weight: bold;
+    font-size: 1em;
+    margin-right: 8px;
+    letter-spacing: 1px;
+  }
+  </style>
+  <!-- Top left bar -->
+  <div id="top-left-bar">
+    <span id="update-date-label"></span>
+  </div>
+  <script>
+    // Set update date to today's date
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById('update-date-label').textContent = `Last Updated on : ${mm}-${dd}-${yyyy}`;
+  </script>
+<!-- Original intro overlay code below -->
+<div id="intro-overlay">
+  <div>
+    <div id="intro-title">Fate's Awakening</div>
+    <div id="intro-story">
+      <p>
+        In a world torn by ancient wars and forgotten magic, you awaken in the heart of the realm—Central Town. The lands around you are shrouded in mystery, with forests, mountains, deserts, and ruins waiting to be discovered. Towns bustle with life, each holding secrets, rare sellers, and unique events. Chests glimmer in hidden corners, promising gold and treasures to the bold.
+      </p>
+      <p>
+        As you journey, you will face a host of enemies—from cunning goblins to legendary bosses. Equip powerful weapons, armor, rings, and more to survive. Manage your inventory and bag, deposit valuables in the bank, and seek out the shop for ever-changing wares. Special sellers in towns offer rare items for those who explore bravely.
+      </p>
+      <p>
+        Harness the power of Prayer to deflect attacks or heal in battle. Visit the Prayer Altar to renew your strength. Level up, gain experience, and unlock the ancient set for unmatched power. Auto-explore the world, auto-attack foes, and shape your fate.
+      </p>
+      <p>
+        <b>Features:</b>
+        <ul style="margin-left:18px;">
+          <li>18x18 grid map with towns, chests, and areas</li>
+          <li>Dynamic inventory, bag, equipment, and bank system</li>
+          <li>Shop with rotating items and full armor sets</li>
+          <li>Special sellers in towns with rare items</li>
+          <li>Prayer system: Deflect & Heal, with altar renewal</li>
+          <li>Auto-explore and auto-attack options</li>
+          <li>Ancient Boss with unique rewards and set bonuses</li>
+          <li>Save/load your progress and upload custom music</li>
+          <li>More to come!</li>
+        </ul>
+      </p>
+      <p>
+        Your destiny awaits. Will you accept your fate and begin your legend?
+      </p>
+    </div>
+    <button id="accept-fate-btn">Accept Fate</button>
+  </div>
+</div>
+<script>
+  // Hide all overlays and main UI until Accept Fate is clicked
+  document.addEventListener('DOMContentLoaded', function() {
+    const intro = document.getElementById('intro-overlay');
+    const usernameOverlay = document.getElementById('username-overlay');
+    const mainContainer = document.getElementById('container');
+    // Hide everything except intro overlay
+    if (intro) intro.style.display = 'flex';
+    if (usernameOverlay) usernameOverlay.style.display = 'none';
+    if (mainContainer) mainContainer.style.display = 'none';
+    // Hide overlays and buttons
+    [
+      'bank-modal-bg', 'special-seller-popup', 'town-popup', 'ancient-boss-popup', 'multi-use-popup', 'panel-locations-popup', 'prayer-panel', 'prayer-altar-panel',
+      'main-save-ui', 'explore-bar', 'direction-select-bar', 'panel-locations-btn'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    document.getElementById('accept-fate-btn').onclick = function() {
+      intro.style.display = 'none';
+      if (usernameOverlay) usernameOverlay.style.display = 'flex';
+      if (mainContainer) mainContainer.style.display = '';
+      // Show overlays/buttons that should be visible after intro
+      [
+        'main-save-ui', 'explore-bar', 'direction-select-bar', 'panel-locations-btn'
+      ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = '';
+      });
+      // Show prayer panels if present
+      ['prayer-panel', 'prayer-altar-panel'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = '';
+      });
+    };
+    // Prevent explore and auto-explore until Accept Fate is clicked
+    window._introAccepted = false;
+    const origStartExplore = window.startExplore;
+    window.startExplore = function() {
+      if (!window._introAccepted) return;
+      origStartExplore && origStartExplore();
+    };
+    const origShowAutoExploreDirectionPopup = window.showAutoExploreDirectionPopup;
+    window.showAutoExploreDirectionPopup = function() {
+      if (!window._introAccepted) return;
+      origShowAutoExploreDirectionPopup && origShowAutoExploreDirectionPopup();
+    };
+    // Prevent save/load until Accept Fate
+    const origSaveBtn = document.getElementById('main-save-btn');
+    if (origSaveBtn) {
+      const origSaveHandler = origSaveBtn.onclick;
+      origSaveBtn.onclick = function() {
+        if (!window._introAccepted) return;
+        origSaveHandler && origSaveHandler();
+      };
+    }
+    const origLoadBtn = document.getElementById('main-load-btn');
+    if (origLoadBtn) {
+      const origLoadHandler = origLoadBtn.onclick;
+      origLoadBtn.onclick = function() {
+        if (!window._introAccepted) return;
+        origLoadHandler && origLoadHandler();
+      };
+    }
+    // Accept Fate sets flag
+    document.getElementById('accept-fate-btn').onclick = function() {
+      window._introAccepted = true;
+      intro.style.display = 'none';
+      if (usernameOverlay) usernameOverlay.style.display = 'flex';
+      if (mainContainer) mainContainer.style.display = '';
+      [
+        'main-save-ui', 'explore-bar', 'direction-select-bar', 'prayer-panel', 'prayer-altar-panel', 'panel-locations-btn'
+      ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = '';
+      });
+    };
+  });
+</script>
+
 <title>Legend of III Game Web Interface</title>
 <style>
+  
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       background: #202124;
@@ -2286,6 +2528,65 @@ function updateAllStats() {
   renderDerivedStats();
   renderEquipment();
 }
+// --- Bow & Arrows Functionality ---
+// Helper: check if equipped weapon is a bow
+function isEquippedBow() {
+  const weapon = player.equipment.weapon;
+  return weapon && (weapon.isBow || (weapon.name && weapon.name.toLowerCase().includes('bow')));
+}
+// Helper: check if arrows are equipped and have count > 0
+function hasEquippedArrows() {
+  const arrows = player.equipment.arrows;
+  return arrows && typeof arrows.count === "number" && arrows.count > 0;
+}
+
+// Patch attackEnemy to handle bow/arrows logic
+const origAttackEnemyBow = typeof attackEnemy === "function" ? attackEnemy : null;
+window.attackEnemy = function() {
+  // Bow logic: if equipped weapon is a bow, check for arrows
+  if (isEquippedBow()) {
+    if (!hasEquippedArrows()) {
+      // Show popup: "You need arrows equipped to use a bow!"
+      showNoArrowsPopup();
+      return;
+    }
+  }
+  // If bow and arrows equipped, consume one arrow per attack
+  if (isEquippedBow() && hasEquippedArrows()) {
+    player.equipment.arrows.count -= 1;
+    logMsg(`<span style="color:#ffba3a;">Used 1 arrow. ${player.equipment.arrows.count > 0 ? `Arrows left: ${player.equipment.arrows.count}` : "No arrows left!"}</span>`);
+    if (player.equipment.arrows.count <= 0) {
+      logMsg(`<span style="color:#f44;font-weight:bold;">You have run out of arrows!</span>`);
+      player.equipment.arrows = null;
+    }
+    updateAllStats();
+    renderBagInv();
+  }
+  // Continue with normal attack logic
+  origAttackEnemyBow && origAttackEnemyBow();
+};
+
+// Show popup if trying to attack with bow but no arrows equipped
+function showNoArrowsPopup() {
+  // Remove old popup if exists
+  let oldPopup = document.getElementById('no-arrows-popup');
+  if (oldPopup) oldPopup.remove();
+  // Create popup
+  const popup = document.createElement('div');
+  popup.id = 'no-arrows-popup';
+  popup.style = 'position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+  popup.innerHTML = `
+    <div style="background:#23252a;padding:32px 38px 24px 38px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;">
+      <div style="color:#ff4444;font-size:1.2em;margin-bottom:18px;">No Arrows Equipped!</div>
+      <div style="margin-bottom:12px;">You need arrows equipped to use a bow.<br>Equip arrows in your equipment panel.</div>
+      <button id="no-arrows-ok" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">OK</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  document.getElementById('no-arrows-ok').onclick = function() {
+    popup.remove();
+  };
+}
 
 // --- Replace all calls to renderPlayerStats(), renderDerivedStats(), or renderEquipment() after stat changes with updateAllStats() ---
 // For example, in equipItem, equipBagItem, useItem, addItem, handleEquipSlot, etc.
@@ -2322,6 +2623,11 @@ function renderEquipment() {
       setBonus += `<br><span style="color:${setCount>=4?'#90ee90':'#fff'};">+40 DEF, +100 HP</span>`;
       setBonus += `<br><span style="color:${setCount===5?'#90ee90':'#fff'};">+60 DEF, +150 HP</span>`;
     }
+    // Show arrow count if equipped
+    let arrowsCount = "";
+    if (slot === "arrows" && eq && typeof eq.count === "number") {
+      arrowsCount = `<br>Arrows: <b>x${eq.count}</b>`;
+    }
     eqLeft.innerHTML += `
       <div class="equip-slot${isAncient ? ' ancient-set' : ''}" onclick="handleEquipSlot('${slot}')" title="${slotData.label}">
        <b>${slotData.label}:</b> <span class="item-name">${eq ? eq.name.replace(/\s*\([^)]*\)/, "") : "<em>none</em>"}</span>
@@ -2330,6 +2636,7 @@ function renderEquipment() {
   ${eq && eq.attackPower ? `<br>ATK: <b>+${eq.attackPower}</b>` : ""}
   ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
   ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
+  ${arrowsCount}
   ${setBonus}
 </div>
     `;
@@ -2346,6 +2653,11 @@ function renderEquipment() {
       if (setCount >= 4) setBonus += `<br><span style="color:#90ee90;">+40 DEF, +100 HP</span>`;
       if (setCount === 5) setBonus += `<br><span style="color:#90ee90;">+60 DEF, +150 HP</span>`;
     }
+    // Show arrow count if equipped (for right side, just in case)
+    let arrowsCount = "";
+    if (slot === "arrows" && eq && typeof eq.count === "number") {
+      arrowsCount = `<br>Arrows: <b>x${eq.count}</b>`;
+    }
     eqRight.innerHTML += `
   <div class="equip-slot${isAncient ? ' ancient-set' : ''}" onclick="handleEquipSlot('${slot}')" title="${slotData.label}">
     <b>${slotData.label}:</b> <span class="item-name" style="max-width:70px;display:inline-block;vertical-align:middle;">${eq ? eq.name.replace(/\s*\([^)]*\)/, "") : "<em>none</em>"}</span>
@@ -2354,6 +2666,7 @@ function renderEquipment() {
       ${eq && eq.attackPower ? `<br>ATK: <b>+${eq.attackPower}</b>` : ""}
       ${eq && eq.defense ? `<br>DEF: <b>+${eq.defense}</b>` : ""}
       ${eq && eq.health ? `<br>HP: <b>+${eq.health}</b>` : ""}
+      ${arrowsCount}
       ${setBonus}
     </div>
   </div>
@@ -2479,26 +2792,29 @@ function isEquipable(item) {
   return ["weapon","armor","shield","ring","arrows","helmet","cloak","amulet","gloves","boots"].includes(item.type);
 }
 function addItem(item) {
-  // If gloves, boots, helmet, cloak, ring: assign random health/defense
-  if (item.type === "gloves") {
-    item.defense = 15;
-    item.health = randomStat(30,100);
-  }
-  if (item.type === "boots") {
-    item.defense = 20;
-    item.health = randomStat(20,100);
-  }
-  if (item.type === "helmet") {
-    item.defense = 25;
-    item.health = randomStat(30,100);
-  }
-  if (item.type === "cloak") {
-    item.defense = 35;
-    item.health = randomStat(25,100);
-  }
-  if (item.type === "ring") {
-    item.attackPower = item.attackPower || 2;
-    item.health = randomStat(10,100);
+  // Prevent stat reroll for special seller items
+  if (!item._noReroll) {
+    // Only assign random stats if not already set
+    if (item.type === "gloves") {
+      if (typeof item.defense !== "number") item.defense = 15;
+      if (typeof item.health !== "number") item.health = randomStat(30,100);
+    }
+    if (item.type === "boots") {
+      if (typeof item.defense !== "number") item.defense = 20;
+      if (typeof item.health !== "number") item.health = randomStat(20,100);
+    }
+    if (item.type === "helmet") {
+      if (typeof item.defense !== "number") item.defense = 25;
+      if (typeof item.health !== "number") item.health = randomStat(30,100);
+    }
+    if (item.type === "cloak") {
+      if (typeof item.defense !== "number") item.defense = 35;
+      if (typeof item.health !== "number") item.health = randomStat(25,100);
+    }
+    if (item.type === "ring") {
+      if (typeof item.attackPower !== "number") item.attackPower = 2;
+      if (typeof item.health !== "number") item.health = randomStat(10,100);
+    }
   }
 
   // Helper to stack items
@@ -2526,9 +2842,31 @@ function addItem(item) {
     return false;
   }
 
-  // Arrows always go to bag and stack
+  // Always stack arrows in both inventory and bag, updating the count of the existing stack
   if (item.type === "arrows") {
-    if (!tryStack(player.bag, item)) {
+    let stacked = false;
+    // Try stacking in inventory first
+    for (let i = 0; i < player.inventory.length; i++) {
+      let it = player.inventory[i];
+      if (it.type === "arrows") {
+        it.count = (it.count || 1) + (item.count || 1);
+        stacked = true;
+        break;
+      }
+    }
+    // If not found in inventory, try stacking in bag
+    if (!stacked) {
+      for (let i = 0; i < player.bag.length; i++) {
+        let it = player.bag[i];
+        if (it.type === "arrows") {
+          it.count = (it.count || 1) + (item.count || 1);
+          stacked = true;
+          break;
+        }
+      }
+    }
+    // If not found in either, add to bag by default
+    if (!stacked) {
       player.bag.push({ ...item, count: item.count || 1 });
     }
     logMsg(`Added ${item.name}${item.count > 1 ? ` (x${item.count})` : ""} to Bag.`);
@@ -2927,74 +3265,21 @@ if (!document.getElementById('special-seller-popup')) {
 
 // Ensure showSpecialSeller is globally available and generates items and buy buttons
 
-  // Generate 6 random high-stat items under 500 gold
-  let specialItems = [];
-  for (let i = 0; i < 6; ++i) {
-    let type = ["armor", "weapon", "potion", "helmet", "boots", "shield", "cloak", "amulet", "ring", "gloves"][Math.floor(Math.random()*10)];
-    let item = { price: Math.floor(Math.random()*200)+250 };
-    if (type === "armor") {
-      item.name = "Special Armor";
-      item.type = "armor";
-      item.defense = Math.floor(Math.random()*30)+50;
-    } else if (type === "weapon") {
-      item.name = "Special Sword";
-      item.type = "weapon";
-      item.attackPower = Math.floor(Math.random()*20)+45;
-    } else if (type === "potion") {
-      item.name = "Mega Potion";
-      item.type = "potion";
-      item.heal = Math.floor(Math.random()*50)+100;
-    } else if (type === "helmet") {
-      item.name = "Special Helmet";
-      item.type = "helmet";
-      item.defense = Math.floor(Math.random()*15)+25;
-      item.health = Math.floor(Math.random()*30)+25;
-    } else if (type === "boots") {
-      item.name = "Special Boots";
-      item.type = "boots";
-      item.defense = Math.floor(Math.random()*10)+20;
-      item.health = Math.floor(Math.random()*20)+20;
-    } else if (type === "shield") {
-      item.name = "Special Shield";
-      item.type = "shield";
-      item.defense = Math.floor(Math.random()*20)+30;
-    } else if (type === "cloak") {
-      item.name = "Special Cloak";
-      item.type = "cloak";
-      item.defense = Math.floor(Math.random()*15)+30;
-      item.health = Math.floor(Math.random()*20)+20;
-    } else if (type === "amulet") {
-      item.name = "Special Amulet";
-      item.type = "amulet";
-      item.defense = Math.floor(Math.random()*10)+15;
-    } else if (type === "ring") {
-      item.name = "Special Ring";
-      item.type = "ring";
-      item.attackPower = Math.floor(Math.random()*5)+5;
-      item.health = Math.floor(Math.random()*20)+10;
-    } else if (type === "gloves") {
-      item.name = "Special Gloves";
-      item.type = "gloves";
-      item.defense = Math.floor(Math.random()*10)+15;
-      item.health = Math.floor(Math.random()*20)+10;
+// Add tooltip CSS if not present
+if (!document.getElementById('special-seller-tooltip-style')) {
+  const style = document.createElement('style');
+  style.id = 'special-seller-tooltip-style';
+  style.textContent = `
+    .special-seller-item { position: relative; }
+    .special-seller-tooltip {
+      pointer-events: none;
+      opacity: 0.98;
+      transition: opacity 0.12s;
     }
-    item.price = Math.min(item.price, 499);
-    specialItems.push(item);
-  }
-  let html = '';
-  specialItems.forEach((item, idx) => {
-    let stat = '';
-    if(item.defense) stat += ` DEF: <b>+${item.defense}</b>`;
-    if(item.attackPower) stat += ` ATK: <b>+${item.attackPower}</b>`;
-    if(item.heal) stat += ` HEAL: <b>+${item.heal}</b>`;
-    if(item.health) stat += ` HP: <b>+${item.health}</b>`;
-    html += `<div style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-      <div><b>${item.name}</b>${stat}</div>
-      <div><span style="color:gold;font-weight:bold;">${item.price} Gold</span> <button onclick="buySpecialSellerItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button></div>
-    </div>`;
-  });
-
-};
+  `;
+  document.head.appendChild(style);
+}
+}
 
 
 let lastTownVisited = null;
@@ -3014,75 +3299,90 @@ document.getElementById('town-popup-yes').onclick = function() {
 document.getElementById('town-popup-no').onclick = function() {
   document.getElementById('town-popup').style.display = 'none';
 };
-// --- PATCH renderMap to show checkmark for visited towns ---
-const origRenderMap = renderMap;
-renderMap = function() {
-  const map = document.getElementById('game-map');
-  map.innerHTML = "";
-  for (let y = 0; y < mapSize; ++y) {
-    for (let x = 0; x < mapSize; ++x) {
-      let cellClass = "map-cell";
-      let label = "";
-      let cell = mapData[y][x];
-      // Player
-      if (x === playerPosition.x && y === playerPosition.y) {
-        cellClass += " player";
-      }
-      // Central Town
-      if (cell.type === "central-town") {
-        cellClass += " central-town";
-        label = "C";
-      }
-      // Other Towns
-      else if (cell.type === "town") {
-        cellClass += " town";
-        if (visitedTowns[cell.name]) {
-          label = "✔";
-        } else {
-          label = "T";
+  // Add emojis for area names
+  const areaEmojis = {
+    Plains: "🌾",
+    Forest: "🌲",
+    Mountain: "⛰️",
+    River: "🌊",
+    Ruins: "🏚️",
+    Cave: "🕳️",
+    Desert: "🏜️",
+    Swamp: "🦆",
+    Valley: "🏞️",
+    Hills: "🌄"
+  };
+
+  // Patch renderMap to show emoji for area cells
+  const origRenderMapWithEmoji = renderMap;
+  renderMap = function() {
+    const map = document.getElementById('game-map');
+    map.innerHTML = "";
+    for (let y = 0; y < mapSize; ++y) {
+      for (let x = 0; x < mapSize; ++x) {
+        let cellClass = "map-cell";
+        let label = "";
+        let cell = mapData[y][x];
+        // Player
+        if (x === playerPosition.x && y === playerPosition.y) {
+          cellClass += " player";
         }
-      }
-      // Chest
-      else if (cell.type === "chest") {
-        cellClass += " chest";
-        label = "💰";
-      }
-      // Area
-      else if (cell.type === "area") {
-        if (discovered[y][x]) {
+        // Central Town
+        if (cell.type === "central-town") {
+          cellClass += " central-town";
+          label = "C";
+        }
+        // Other Towns
+        else if (cell.type === "town") {
+          cellClass += " town";
+          if (visitedTowns[cell.name]) {
+            label = "✔";
+          } else {
+            label = "T";
+          }
+        }
+        // Chest
+        else if (cell.type === "chest") {
+          cellClass += " chest";
+          label = "💰";
+        }
+        // Area
+        else if (cell.type === "area") {
+          if (discovered[y][x]) {
+            cellClass += " discovered";
+            label = areaEmojis[cell.name] || cell.name[0];
+          } else {
+            cellClass += " area";
+            label = areaEmojis[cell.name] || cell.name[0];
+          }
+        }
+        // Discovered
+        else if (cell.type === "discovered") {
           cellClass += " discovered";
-          label = cell.name[0];
-        } else {
-          cellClass += " area";
-          label = cell.name[0];
+          label = "";
         }
+        // Undiscovered
+        if (!discovered[y][x] && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
+          cellClass += " undiscovered";
+          label = "";
+        }
+        // Show player icon
+        if (x === playerPosition.x && y === playerPosition.y) {
+          label = "🧑";
+        }
+        map.innerHTML += `<div class="${cellClass}" data-x="${x}" data-y="${y}" onclick="mapCellClick(${x},${y})" title="${cell.type === 'area' || cell.type === 'discovered' ? cell.name : cell.name || ''}">${label}</div>`;
       }
-      // Discovered
-      else if (cell.type === "discovered") {
-        cellClass += " discovered";
-        label = "";
-      }
-      // Undiscovered
-      if (!discovered[y][x] && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
-        cellClass += " undiscovered";
-        label = "";
-      }
-      // Show player icon
-      if (x === playerPosition.x && y === playerPosition.y) {
-        label = "🧑";
-      }
-      map.innerHTML += `<div class="${cellClass}" data-x="${x}" data-y="${y}" onclick="mapCellClick(${x},${y})" title="${cell.type === 'area' || cell.type === 'discovered' ? cell.name : cell.name || ''}">${label}</div>`;
     }
-  }
-  let areaLabel = "";
-  let cell = mapData[playerPosition.y][playerPosition.x];
-  if (cell.type === "central-town") areaLabel = "Area: Central Town";
-  else if (cell.type === "town") areaLabel = "Area: " + cell.name;
-  else if (cell.type === "chest") areaLabel = "Area: Chest";
-  else if (!discovered[playerPosition.y][playerPosition.x]) areaLabel = "Area: Not Discovered";
-  else areaLabel = "Area: " + (cell.name || "Discovered");
-  document.getElementById("map-area-label").textContent = areaLabel;
-};
+    let areaLabel = "";
+    let cell = mapData[playerPosition.y][playerPosition.x];
+    if (cell.type === "central-town") areaLabel = "Area: Central Town";
+    else if (cell.type === "town") areaLabel = "Area: " + cell.name;
+    else if (cell.type === "chest") areaLabel = "Area: Chest";
+    else if (!discovered[playerPosition.y][playerPosition.x]) areaLabel = "Area: Not Discovered";
+    else areaLabel = "Area: " + (cell.name || "Discovered");
+    document.getElementById("map-area-label").textContent = areaLabel;
+  };
+
 function refreshShopItems() {
   // Helper to generate a random item by type
   function generateItem(type) {
@@ -3092,11 +3392,12 @@ function refreshShopItems() {
           let def = Math.floor(Math.random() * 106) + 20;
           let price = Math.floor(50 + (def - 20) * 8);
           return {
-            name: `Armor (${def} DEF)`,
+            name: `Armor`,
             type: 'armor',
             defense: def,
             price: price,
-            description: `Protective armor.`
+            description: `Protective armor.`,
+            _shopStat: def // for tooltip
           };
         }
       case "weapon":
@@ -3104,11 +3405,12 @@ function refreshShopItems() {
           let atk = Math.floor(Math.random() * 91) + 10;
           let price = Math.floor(30 + (atk - 10) * 5);
           return {
-            name: `Weapon (${atk} ATK)`,
+            name: `Weapon`,
             type: 'weapon',
             attackPower: atk,
             price: price,
-            description: `A sharp weapon.`
+            description: `A sharp weapon.`,
+            _shopStat: atk
           };
         }
       case "potion":
@@ -3116,11 +3418,12 @@ function refreshShopItems() {
           let heal = Math.floor(Math.random() * 81) + 20;
           let price = Math.floor(10 + (heal - 20) * 3);
           return {
-            name: `Potion (+${heal} HP)`,
+            name: `Potion`,
             type: 'potion',
             heal: heal,
             price: price,
-            description: `Heals for ${heal} HP.`
+            description: `Heals for ${heal} HP.`,
+            _shopStat: heal
           };
         }
       case "helmet":
@@ -3129,12 +3432,13 @@ function refreshShopItems() {
           let hp = Math.floor(Math.random() * 61) + 20;
           let price = Math.floor(40 + def * 6 + hp * 2);
           return {
-            name: `Helmet (${def} DEF, ${hp} HP)`,
+            name: `Helmet`,
             type: 'helmet',
             defense: def,
             health: hp,
             price: price,
-            description: `Sturdy helmet.`
+            description: `Sturdy helmet.`,
+            _shopStat: {def, hp}
           };
         }
       case "boots":
@@ -3143,12 +3447,13 @@ function refreshShopItems() {
           let hp = Math.floor(Math.random() * 41) + 10;
           let price = Math.floor(30 + def * 5 + hp * 2);
           return {
-            name: `Boots (${def} DEF, ${hp} HP)`,
+            name: `Boots`,
             type: 'boots',
             defense: def,
             health: hp,
             price: price,
-            description: `Protective boots.`
+            description: `Protective boots.`,
+            _shopStat: {def, hp}
           };
         }
       case "shield":
@@ -3156,11 +3461,12 @@ function refreshShopItems() {
           let def = Math.floor(Math.random() * 41) + 20;
           let price = Math.floor(50 + def * 7);
           return {
-            name: `Shield (${def} DEF)`,
+            name: `Shield`,
             type: 'shield',
             defense: def,
             price: price,
-            description: `Sturdy shield.`
+            description: `Sturdy shield.`,
+            _shopStat: def
           };
         }
       case "cloak":
@@ -3169,12 +3475,13 @@ function refreshShopItems() {
           let hp = Math.floor(Math.random() * 41) + 10;
           let price = Math.floor(60 + def * 5 + hp * 2);
           return {
-            name: `Cloak (${def} DEF, ${hp} HP)`,
+            name: `Cloak`,
             type: 'cloak',
             defense: def,
             health: hp,
             price: price,
-            description: `Mystical cloak.`
+            description: `Mystical cloak.`,
+            _shopStat: {def, hp}
           };
         }
       case "amulet":
@@ -3182,11 +3489,12 @@ function refreshShopItems() {
           let def = Math.floor(Math.random() * 16) + 5;
           let price = Math.floor(100 + def * 12);
           return {
-            name: `Amulet (+${def} DEF)`,
+            name: `Amulet`,
             type: 'amulet',
             defense: def,
             price: price,
-            description: `Mystic amulet.`
+            description: `Mystic amulet.`,
+            _shopStat: def
           };
         }
       case "ring":
@@ -3195,12 +3503,13 @@ function refreshShopItems() {
           let hp = Math.floor(Math.random() * 51) + 10;
           let price = Math.floor(120 + atk * 20 + hp * 3);
           return {
-            name: `Ring (+${atk} ATK, +${hp} HP)`,
+            name: `Ring`,
             type: 'ring',
             attackPower: atk,
             health: hp,
             price: price,
-            description: `Magical ring.`
+            description: `Magical ring.`,
+            _shopStat: {atk, hp}
           };
         }
       case "gloves":
@@ -3209,12 +3518,13 @@ function refreshShopItems() {
           let hp = Math.floor(Math.random() * 31) + 10;
           let price = Math.floor(25 + def * 4 + hp * 2);
           return {
-            name: `Gloves (${def} DEF, ${hp} HP)`,
+            name: `Gloves`,
             type: 'gloves',
             defense: def,
             health: hp,
             price: price,
-            description: `Strong gloves.`
+            description: `Strong gloves.`,
+            _shopStat: {def, hp}
           };
         }
       case "full-armor-set":
@@ -3223,33 +3533,36 @@ function refreshShopItems() {
           let setHp = Math.floor(Math.random() * 201) + 200;
           let price = Math.floor(1000 + setDef * 15 + setHp * 5);
           return {
-            name: `Full Armor Set (${setDef} DEF, ${setHp} HP)`,
+            name: `Full Armor Set`,
             type: 'armor-set',
             defense: setDef,
             health: setHp,
             price: Math.min(price, 5000),
-            description: `Contains Armor, Helmet, Boots, Shield, Cloak, Gloves.`
+            description: `Contains Armor, Helmet, Boots, Shield, Cloak, Gloves.`,
+            _shopStat: {setDef, setHp}
           };
         }
       case "arrows":
         return {
-          name: 'Arrows (x100)',
+          name: 'Arrows',
           type: 'arrows',
           count: 100,
           price: 15,
-          description: 'A pack of 100 arrows.'
+          description: 'A pack of 100 arrows.',
+          _shopStat: 100
         };
       case "bow":
         {
           let batk = Math.floor(Math.random() * 131) + 20;
           let price = Math.floor(60 + (batk - 20) * 3.5);
           return {
-            name: `Bow (${batk} ATK)`,
+            name: `Bow`,
             type: 'weapon',
             attackPower: batk,
             isBow: true,
             price: price,
-            description: `A powerful bow.`
+            description: `A powerful bow.`,
+            _shopStat: batk
           };
         }
       default:
@@ -3313,19 +3626,19 @@ buyShopItem = function(idx) {
   function generateItem(type) {
     // (same as above, but you can move the function outside if you want)
     switch (type) {
-      case "armor": { let def = Math.floor(Math.random() * 106) + 20; let price = Math.floor(50 + (def - 20) * 8); return { name: `Armor (${def} DEF)`, type: 'armor', defense: def, price: price, description: `Protective armor.` }; }
-      case "weapon": { let atk = Math.floor(Math.random() * 91) + 10; let price = Math.floor(30 + (atk - 10) * 5); return { name: `Weapon (${atk} ATK)`, type: 'weapon', attackPower: atk, price: price, description: `A sharp weapon.` }; }
-      case "potion": { let heal = Math.floor(Math.random() * 81) + 20; let price = Math.floor(10 + (heal - 20) * 3); return { name: `Potion (+${heal} HP)`, type: 'potion', heal: heal, price: price, description: `Heals for ${heal} HP.` }; }
-      case "helmet": { let def = Math.floor(Math.random() * 41) + 10; let hp = Math.floor(Math.random() * 61) + 20; let price = Math.floor(40 + def * 6 + hp * 2); return { name: `Helmet (${def} DEF, ${hp} HP)`, type: 'helmet', defense: def, health: hp, price: price, description: `Sturdy helmet.` }; }
-      case "boots": { let def = Math.floor(Math.random() * 31) + 10; let hp = Math.floor(Math.random() * 41) + 10; let price = Math.floor(30 + def * 5 + hp * 2); return { name: `Boots (${def} DEF, ${hp} HP)`, type: 'boots', defense: def, health: hp, price: price, description: `Protective boots.` }; }
-      case "shield": { let def = Math.floor(Math.random() * 41) + 20; let price = Math.floor(50 + def * 7); return { name: `Shield (${def} DEF)`, type: 'shield', defense: def, price: price, description: `Sturdy shield.` }; }
-      case "cloak": { let def = Math.floor(Math.random() * 26) + 15; let hp = Math.floor(Math.random() * 41) + 10; let price = Math.floor(60 + def * 5 + hp * 2); return { name: `Cloak (${def} DEF, ${hp} HP)`, type: 'cloak', defense: def, health: hp, price: price, description: `Mystical cloak.` }; }
-      case "amulet": { let def = Math.floor(Math.random() * 16) + 5; let price = Math.floor(100 + def * 12); return { name: `Amulet (+${def} DEF)`, type: 'amulet', defense: def, price: price, description: `Mystic amulet.` }; }
-      case "ring": { let atk = Math.floor(Math.random() * 6) + 2; let hp = Math.floor(Math.random() * 51) + 10; let price = Math.floor(120 + atk * 20 + hp * 3); return { name: `Ring (+${atk} ATK, +${hp} HP)`, type: 'ring', attackPower: atk, health: hp, price: price, description: `Magical ring.` }; }
-      case "gloves": { let def = Math.floor(Math.random() * 21) + 10; let hp = Math.floor(Math.random() * 31) + 10; let price = Math.floor(25 + def * 4 + hp * 2); return { name: `Gloves (${def} DEF, ${hp} HP)`, type: 'gloves', defense: def, health: hp, price: price, description: `Strong gloves.` }; }
-      case "full-armor-set": { let setDef = Math.floor(Math.random() * 101) + 100; let setHp = Math.floor(Math.random() * 201) + 200; let price = Math.floor(1000 + setDef * 15 + setHp * 5); return { name: `Full Armor Set (${setDef} DEF, ${setHp} HP)`, type: 'armor-set', defense: setDef, health: setHp, price: Math.min(price, 5000), description: `Contains Armor, Helmet, Boots, Shield, Cloak, Gloves.` }; }
-      case "arrows": return { name: 'Arrows (x100)', type: 'arrows', count: 100, price: 15, description: 'A pack of 100 arrows.' };
-      case "bow": { let batk = Math.floor(Math.random() * 131) + 20; let price = Math.floor(60 + (batk - 20) * 3.5); return { name: `Bow (${batk} ATK)`, type: 'weapon', attackPower: batk, isBow: true, price: price, description: `A powerful bow.` }; }
+      case "armor": { let def = Math.floor(Math.random() * 106) + 20; let price = Math.floor(50 + (def - 20) * 8); return { name: `Armor`, type: 'armor', defense: def, price: price, description: `Protective armor.`, _shopStat: def }; }
+      case "weapon": { let atk = Math.floor(Math.random() * 91) + 10; let price = Math.floor(30 + (atk - 10) * 5); return { name: `Weapon`, type: 'weapon', attackPower: atk, price: price, description: `A sharp weapon.`, _shopStat: atk }; }
+      case "potion": { let heal = Math.floor(Math.random() * 81) + 20; let price = Math.floor(10 + (heal - 20) * 3); return { name: `Potion`, type: 'potion', heal: heal, price: price, description: `Heals for ${heal} HP.`, _shopStat: heal }; }
+      case "helmet": { let def = Math.floor(Math.random() * 41) + 10; let hp = Math.floor(Math.random() * 61) + 20; let price = Math.floor(40 + def * 6 + hp * 2); return { name: `Helmet`, type: 'helmet', defense: def, health: hp, price: price, description: `Sturdy helmet.`, _shopStat: {def, hp} }; }
+      case "boots": { let def = Math.floor(Math.random() * 31) + 10; let hp = Math.floor(Math.random() * 41) + 10; let price = Math.floor(30 + def * 5 + hp * 2); return { name: `Boots`, type: 'boots', defense: def, health: hp, price: price, description: `Protective boots.`, _shopStat: {def, hp} }; }
+      case "shield": { let def = Math.floor(Math.random() * 41) + 20; let price = Math.floor(50 + def * 7); return { name: `Shield`, type: 'shield', defense: def, price: price, description: `Sturdy shield.`, _shopStat: def }; }
+      case "cloak": { let def = Math.floor(Math.random() * 26) + 15; let hp = Math.floor(Math.random() * 41) + 10; let price = Math.floor(60 + def * 5 + hp * 2); return { name: `Cloak`, type: 'cloak', defense: def, health: hp, price: price, description: `Mystical cloak.`, _shopStat: {def, hp} }; }
+      case "amulet": { let def = Math.floor(Math.random() * 16) + 5; let price = Math.floor(100 + def * 12); return { name: `Amulet`, type: 'amulet', defense: def, price: price, description: `Mystic amulet.`, _shopStat: def }; }
+      case "ring": { let atk = Math.floor(Math.random() * 6) + 2; let hp = Math.floor(Math.random() * 51) + 10; let price = Math.floor(120 + atk * 20 + hp * 3); return { name: `Ring`, type: 'ring', attackPower: atk, health: hp, price: price, description: `Magical ring.`, _shopStat: {atk, hp} }; }
+      case "gloves": { let def = Math.floor(Math.random() * 21) + 10; let hp = Math.floor(Math.random() * 31) + 10; let price = Math.floor(25 + def * 4 + hp * 2); return { name: `Gloves`, type: 'gloves', defense: def, health: hp, price: price, description: `Strong gloves.`, _shopStat: {def, hp} }; }
+      case "full-armor-set": { let setDef = Math.floor(Math.random() * 101) + 100; let setHp = Math.floor(Math.random() * 201) + 200; let price = Math.floor(1000 + setDef * 15 + setHp * 5); return { name: `Full Armor Set`, type: 'armor-set', defense: setDef, health: setHp, price: Math.min(price, 5000), description: `Contains Armor, Helmet, Boots, Shield, Cloak, Gloves.`, _shopStat: {setDef, setHp} }; }
+      case "arrows": return { name: 'Arrows', type: 'arrows', count: 100, price: 15, description: 'A pack of 100 arrows.', _shopStat: 100 };
+      case "bow": { let batk = Math.floor(Math.random() * 131) + 20; let price = Math.floor(60 + (batk - 20) * 3.5); return { name: `Bow`, type: 'weapon', attackPower: batk, isBow: true, price: price, description: `A powerful bow.`, _shopStat: batk }; }
       default: return null;
     }
   }
@@ -3339,7 +3652,7 @@ function renderShopItems() {
   window._shopItems.forEach((item, idx) => {
     shopDiv.innerHTML += `
       <div class="shop-item-card" style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;position:relative;cursor:pointer;">
-        <b>${item.name.replace(/\s*\([^)]*\)/, "")}</b>
+        <b>${item.name}</b>
         <div>
           <span style="color:gold;font-weight:bold;">${item.price} Gold</span>
           <button onclick="buyShopItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button>
@@ -3352,13 +3665,25 @@ function renderShopItems() {
   });
   function getShopItemTooltip(item) {
     let lines = [];
-    lines.push(`<b>${item.name.replace(/\s*\([^)]*\)/, "")}</b>`);
+    // First line: name only (no stats)
+    lines.push(`<b>${item.name}</b>`);
+    // Second line: description
     if (item.description) lines.push(`<span style="color:#aaa;">${item.description}</span>`);
-    if (item.attackPower) lines.push(`ATK: <b>+${item.attackPower}</b>`);
-    if (item.defense) lines.push(`DEF: <b>+${item.defense}</b>`);
-    if (item.health) lines.push(`HP: <b>+${item.health}</b>`);
-    if (item.heal) lines.push(`Heals: <b>+${item.heal}</b>`);
-    if (item.count && item.type === "arrows") lines.push(`Arrows: <b>x${item.count}</b>`);
+    // Stat line(s)
+    if (item.type === "armor" && typeof item.defense === "number") lines.push(`DEF: <b>+${item.defense}</b>`);
+    if (item.type === "weapon" && typeof item.attackPower === "number") lines.push(`ATK: <b>+${item.attackPower}</b>`);
+    if (item.type === "potion" && typeof item.heal === "number") lines.push(`Heals: <b>+${item.heal}</b>`);
+    if (item.type === "helmet" && item.defense && item.health) lines.push(`DEF: <b>+${item.defense}</b>, HP: <b>+${item.health}</b>`);
+    if (item.type === "boots" && item.defense && item.health) lines.push(`DEF: <b>+${item.defense}</b>, HP: <b>+${item.health}</b>`);
+    if (item.type === "shield" && item.defense) lines.push(`DEF: <b>+${item.defense}</b>`);
+    if (item.type === "cloak" && item.defense && item.health) lines.push(`DEF: <b>+${item.defense}</b>, HP: <b>+${item.health}</b>`);
+    if (item.type === "amulet" && item.defense) lines.push(`DEF: <b>+${item.defense}</b>`);
+    if (item.type === "ring" && item.attackPower && item.health) lines.push(`ATK: <b>+${item.attackPower}</b>, HP: <b>+${item.health}</b>`);
+    if (item.type === "gloves" && item.defense && item.health) lines.push(`DEF: <b>+${item.defense}</b>, HP: <b>+${item.health}</b>`);
+    if (item.type === "armor-set" && item.defense && item.health) lines.push(`DEF: <b>+${item.defense}</b>, HP: <b>+${item.health}</b>`);
+    if (item.type === "arrows" && item.count) lines.push(`Arrows: <b>x${item.count}</b>`);
+    if (item.type === "bow" && item.attackPower) lines.push(`ATK: <b>+${item.attackPower}</b>`);
+    // Type line
     if (item.type) lines.push(`<span style="color:#ffba3a;">Type: ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>`);
     return lines.join('<br>');
   }
@@ -3378,15 +3703,8 @@ function renderShopItems() {
   });
 }
 
-// --- PATCH: Remove ( ... ) from item names when adding to inventory/bag ---
-const origAddItem = addItem;
-addItem = function(item) {
-  // Remove ( ... ) from item name for display in bag/inventory
-  if (item && typeof item.name === "string") {
-    item.name = item.name.replace(/\s*\([^)]*\)/, "");
-  }
-  origAddItem(item);
-};
+// --- PATCH: Remove ( ... ) from item names only for display, not for storage ---
+// Do NOT modify the item.name before storing; instead, only strip stats in the UI display code.
 function buyShopItem(idx) {
   let item = window._shopItems[idx];
   if (player.gold < item.price) {
@@ -3471,10 +3789,6 @@ document.getElementById('username-submit').onclick = function() {
     });
   }
 };
-// Allow Enter key to submit
-document.getElementById('username-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') document.getElementById('username-submit').click();
-});
 function showSpecialSeller() {
   // Generate 6 random high-stat items under 500 gold
   let specialItems = [];
@@ -3485,71 +3799,108 @@ function showSpecialSeller() {
       item.name = "Special Armor";
       item.type = "armor";
       item.defense = Math.floor(Math.random()*30)+50;
+      item.description = "A rare armor with high defense.";
     } else if (type === "weapon") {
       item.name = "Special Sword";
       item.type = "weapon";
       item.attackPower = Math.floor(Math.random()*20)+45;
+      item.description = "A powerful sword with high attack.";
     } else if (type === "potion") {
       item.name = "Mega Potion";
       item.type = "potion";
       item.heal = Math.floor(Math.random()*50)+100;
+      item.description = "Heals a large amount of health.";
     } else if (type === "helmet") {
       item.name = "Special Helmet";
       item.type = "helmet";
       item.defense = Math.floor(Math.random()*15)+25;
       item.health = Math.floor(Math.random()*30)+25;
+      item.description = "A sturdy helmet for protection.";
     } else if (type === "boots") {
       item.name = "Special Boots";
       item.type = "boots";
       item.defense = Math.floor(Math.random()*10)+20;
       item.health = Math.floor(Math.random()*20)+20;
+      item.description = "Boots that boost defense and health.";
     } else if (type === "shield") {
       item.name = "Special Shield";
       item.type = "shield";
       item.defense = Math.floor(Math.random()*20)+30;
+      item.description = "A shield with excellent defense.";
     } else if (type === "cloak") {
       item.name = "Special Cloak";
       item.type = "cloak";
       item.defense = Math.floor(Math.random()*15)+30;
       item.health = Math.floor(Math.random()*20)+20;
+      item.description = "A mystical cloak for defense and health.";
     } else if (type === "amulet") {
       item.name = "Special Amulet";
       item.type = "amulet";
       item.defense = Math.floor(Math.random()*10)+15;
+      item.description = "A magical amulet for extra defense.";
     } else if (type === "ring") {
       item.name = "Special Ring";
       item.type = "ring";
       item.attackPower = Math.floor(Math.random()*5)+5;
       item.health = Math.floor(Math.random()*20)+10;
+      item.description = "A ring that boosts attack and health.";
     } else if (type === "gloves") {
       item.name = "Special Gloves";
       item.type = "gloves";
       item.defense = Math.floor(Math.random()*10)+15;
       item.health = Math.floor(Math.random()*20)+10;
+      item.description = "Gloves that increase defense and health.";
     }
     item.price = Math.min(item.price, 499);
+    item._noReroll = true; // Prevent stat reroll on addItem
     specialItems.push(item);
   }
   let html = '';
   specialItems.forEach((item, idx) => {
-    let stat = '';
-    if(item.defense) stat += ` DEF: <b>+${item.defense}</b>`;
-    if(item.attackPower) stat += ` ATK: <b>+${item.attackPower}</b>`;
-    if(item.heal) stat += ` HEAL: <b>+${item.heal}</b>`;
-    if(item.health) stat += ` HP: <b>+${item.health}</b>`;
-    html += `<div style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
-      <div><b>${item.name}</b>${stat}</div>
-      <div><span style="color:gold;font-weight:bold;">${item.price} Gold</span> <button onclick="buySpecialSellerItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button></div>
-    </div>`;
+    // Tooltip content
+    let tooltip = `<b>${item.name}</b>`;
+    if (item.description) tooltip += `<br><span style='color:#aaa;'>${item.description}</span>`;
+    if (item.attackPower) tooltip += `<br>ATK: <b>+${item.attackPower}</b>`;
+    if (item.defense) tooltip += `<br>DEF: <b>+${item.defense}</b>`;
+    if (item.heal) tooltip += `<br>Heals: <b>+${item.heal}</b>`;
+    if (item.health) tooltip += `<br>HP: <b>+${item.health}</b>`;
+    if (item.type) tooltip += `<br><span style="color:#ffba3a;">Type: ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</span>`;
+    html += `
+      <div class="special-seller-item" style="background:#18191c;border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;position:relative;cursor:pointer;">
+        <div style="position:relative;">
+          <b>${item.name}</b>
+          <div class="special-seller-tooltip" style="display:none;position:absolute;left:110%;top:50%;transform:translateY(-50%);background:#18191c;color:#eee;padding:7px 13px;border-radius:8px;border:1px solid #444;white-space:nowrap;font-size:0.98em;box-shadow:0 2px 10px #0007;z-index:20;min-width:160px;">
+            ${tooltip}
+          </div>
+        </div>
+        <div>
+          <span style="color:gold;font-weight:bold;">${item.price} Gold</span>
+          <button onclick="window.buySpecialSellerItem(${idx})" style="margin-left:10px;background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Buy</button>
+        </div>
+      </div>
+    `;
   });
   window._specialSellerItems = specialItems;
   document.getElementById('special-seller-items').innerHTML = html;
   document.getElementById('special-seller-popup').style.display = 'flex';
+
+  // Tooltip hover logic
+  const sellerItems = document.querySelectorAll('.special-seller-item');
+  sellerItems.forEach(itemDiv => {
+    const tip = itemDiv.querySelector('.special-seller-tooltip');
+    itemDiv.onmouseenter = () => { if (tip) tip.style.display = 'block'; };
+    itemDiv.onmouseleave = () => { if (tip) tip.style.display = 'none'; };
+    itemDiv.onmousemove = (e) => {
+      if (tip) {
+        tip.style.left = (e.offsetX + 30) + 'px';
+        tip.style.top = (e.offsetY - 10) + 'px';
+      }
+    };
+  });
 }
-function closeSpecialSeller() {
-  document.getElementById('special-seller-popup').style.display = 'none';
-}
-function buySpecialSellerItem(itemIndex) {
+
+// Make buySpecialSellerItem and closeSpecialSeller globally available
+window.buySpecialSellerItem = function(itemIndex) {
   let item = window._specialSellerItems[itemIndex];
   if (!item) return;
   if (player.gold < item.price) {
@@ -3557,11 +3908,18 @@ function buySpecialSellerItem(itemIndex) {
     return;
   }
   player.gold -= item.price;
-  addItem(JSON.parse(JSON.stringify(item)));
+  let itemCopy = JSON.parse(JSON.stringify(item));
+  itemCopy._noReroll = true; // Ensure no reroll on addItem
+  addItem(itemCopy);
   logMsg(`Bought ${item.name} for ${item.price} gold from the Special Seller.`);
   renderPlayerStats();
   closeSpecialSeller();
-}
+};
+
+window.closeSpecialSeller = function() {
+  document.getElementById('special-seller-popup').style.display = 'none';
+};
+
 // --- Save/Load Game as JSON File ---
 // Save button logic: only save UI/player state, not map
 document.getElementById('main-save-btn').onclick = function() {
@@ -3898,7 +4256,7 @@ function stopAutoAttack() {
   // Restore button
   const btn = document.getElementById('auto-attack-btn');
   if (btn) {
-    btn.textContent = '⚔️⚔️ Auto Attack';
+    btn.textContent = '⚔️ Auto Attack ⚔️';
     btn.onclick = startAutoAttack;
     btn.style.background = '';
     btn.style.color = '';
@@ -4532,20 +4890,32 @@ function handlePrayerInterval() {
   `;
   document.head.appendChild(style);
 
- 
   // --- PRAYER ALTAR UI ---
   if (!document.getElementById('prayer-altar-panel')) {
     const altarPanel = document.createElement('div');
     altarPanel.id = 'prayer-altar-panel';
     altarPanel.className = 'panel';
-    altarPanel.style = 'margin-top:12px;background:#292c31;border-radius:10px;padding:16px;box-shadow:0 2px 10px #000a;display:flex;flex-direction:column;align-items:center;';
+    altarPanel.style = `
+      margin-top:12px;
+      background:#292c31;
+      border-radius:10px;
+      padding:16px;
+      box-shadow:0 2px 10px #000a;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      max-width:340px;
+      margin-left:auto;
+      margin-right:auto;
+    `;
     altarPanel.innerHTML = `
-      <div style="margin-bottom:10px;">
-        <img src="https://barbarakorzeniowska.com/wp-content/uploads/2025/06/img_6078.jpg?w=768" alt="Prayer Altar" style="width:200px;height:150px;object-fit:cover;border-radius:8px;box-shadow:0 2px 12px #0007;">
+      <div style="margin-bottom:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <img src="https://static.wikia.nocookie.net/runescape2/images/0/06/Chaos_altar.png/revision/latest?cb=20131227214625" alt="Prayer Altar" style="width:200px;height:150px;object-fit:cover;border-radius:8px;box-shadow:0 2px 12px #0007;">
+        <button id="renew-prayer-btn" style="margin-top:18px;font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
       </div>
-      <button id="renew-prayer-btn" style="font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
-      <div id="renew-prayer-msg" style="margin-top:10px;color:#6cf;font-size:1em;display:none;"></div>
-    `
+      <div id="renew-prayer-msg" style="margin-top:10px;color:#6cf;font-size:1em;display:none;text-align:center;"></div>
+    `;
     // Insert below prayer panel
     const prayerPanel = document.getElementById('prayer-panel');
     if (prayerPanel && prayerPanel.parentNode) {
@@ -4560,16 +4930,190 @@ function handlePrayerInterval() {
       msg.textContent = 'Your prayer has been renewed!';
       msg.style.display = 'block';
       setTimeout(() => { msg.style.display = 'none'; }, 1800);
-    
     };
   }
 
+/* --- SIMPLE SAFETY CHECK FOR USER SAVE FILE ---
+  Store last saved values in a separate JSON file and always update values on save.
+*/
 
+// Helper to save last game values to a separate JSON file
+function saveLastGameValuesToFile() {
+  const lastValues = {
+   gold: player.gold,
+   level: player.level,
+   experience: player.experience
+  };
+  const blob = new Blob([JSON.stringify(lastValues, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "last-game-values.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
+// Patch main save button to also save last values file
+const origMainSaveBtn2 = document.getElementById('main-save-btn').onclick;
+document.getElementById('main-save-btn').onclick = function() {
+  try {
+   origMainSaveBtn2 && origMainSaveBtn2();
+   saveLastGameValuesToFile();
+  } catch (e) {
+   alert('Failed to save game: ' + (e && e.message ? e.message : e));
+  }
+};
 
+// Popup helpers
+function showCorruptSavePopup() {
+  let oldPopup = document.getElementById('corrupt-save-popup');
+  if (oldPopup) oldPopup.remove();
+  const popup = document.createElement('div');
+  popup.id = 'corrupt-save-popup';
+  popup.style = 'position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+  popup.innerHTML = `
+   <div style="background:#23252a;padding:38px 44px 32px 44px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:340px;">
+    <div style="color:#ff4444;font-size:1.5em;margin-bottom:18px;">Corrupt Save Detected!</div>
+    <div style="margin-bottom:18px;color:#ffd36b;font-size:1.1em;">
+      <b>Something is amiss in your save file...</b><br>
+      The ancient magic cannot restore your progress.<br>
+      <span style="color:#ffba3a;">Please check your save file and try again!</span>
+    </div>
+    <button onclick="document.getElementById('corrupt-save-popup').remove()" style="font-size:1.1em;font-weight:bold;background:#ff4444;color:#fff;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">OK</button>
+   </div>
+  `;
+  document.body.appendChild(popup);
+}
 
+function showPassedSavePopup() {
+  let oldPopup = document.getElementById('passed-save-popup');
+  if (oldPopup) oldPopup.remove();
+  const popup = document.createElement('div');
+  popup.id = 'passed-save-popup';
+  popup.style = 'position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+  popup.innerHTML = `
+   <div style="background:#23252a;padding:38px 44px 32px 44px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:340px;">
+    <div style="color:#90ee90;font-size:1.5em;margin-bottom:18px;">Save Verified!</div>
+    <div style="margin-bottom:18px;color:#ffd36b;font-size:1.1em;">
+      <b>Your save file passed the ancient safety check.</b><br>
+      The legend continues!
+    </div>
+    <button onclick="document.getElementById('passed-save-popup').remove()" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Continue</button>
+   </div>
+  `;
+  document.body.appendChild(popup);
+}
 
+// Patch load input to add safety check using uploaded last-game-values.json
+const mainLoadInput = document.getElementById('main-load-input');
+if (mainLoadInput) {
+  const origLoadHandler = mainLoadInput.onchange || null;
+  mainLoadInput.onchange = function(e) {
+   try {
+    const file = e.target.files[0];
+    if (!file) throw new Error('No file selected.');
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+       const saveData = JSON.parse(evt.target.result);
 
+       // Prompt user to upload last-game-values.json for strict check
+       let lastValuesInput = document.createElement('input');
+       lastValuesInput.type = 'file';
+       lastValuesInput.accept = '.json,application/json';
+       lastValuesInput.style.display = 'none';
+       document.body.appendChild(lastValuesInput);
+
+       lastValuesInput.onchange = function(ev) {
+        const lastFile = ev.target.files[0];
+        if (!lastFile) {
+          showCorruptSavePopup();
+          document.body.removeChild(lastValuesInput);
+          return;
+        }
+        const lastReader = new FileReader();
+        lastReader.onload = function(ev2) {
+          let lastSaved = null;
+          try {
+           lastSaved = JSON.parse(ev2.target.result);
+          } catch (e) { lastSaved = null; }
+          let passed = (
+           saveData &&
+           typeof saveData.player === "object" &&
+           Array.isArray(saveData.player.inventory) &&
+           Array.isArray(saveData.player.bag) &&
+           typeof saveData.player.equipment === "object" &&
+           Array.isArray(saveData.player.bank) &&
+           typeof saveData.visitedTowns === "object" &&
+           typeof saveData.playerPosition === "object" &&
+           typeof saveData.playerPosition.x === "number" &&
+           typeof saveData.playerPosition.y === "number"
+          );
+          let strictValid = true;
+          if (lastSaved) {
+           strictValid =
+            typeof saveData.player.gold === "number" && saveData.player.gold === lastSaved.gold &&
+            typeof saveData.player.level === "number" && saveData.player.level === lastSaved.level &&
+            typeof saveData.player.experience === "number" && saveData.player.experience === lastSaved.experience;
+          }
+          if (!passed || !strictValid) {
+           showCorruptSavePopup();
+           document.body.removeChild(lastValuesInput);
+           return;
+          }
+          showPassedSavePopup();
+          // Normal load logic
+          initMap();
+          Object.keys(visitedTowns).forEach(k => delete visitedTowns[k]);
+          player.name = saveData.player.name || "Hero";
+          player.health = typeof saveData.player.health === "number" ? saveData.player.health : 100;
+          player.maxHealth = typeof saveData.player.maxHealth === "number" ? saveData.player.maxHealth : 100;
+          player.gold = typeof saveData.player.gold === "number" ? saveData.player.gold : 0;
+          player.experience = typeof saveData.player.experience === "number" ? saveData.player.experience : 0;
+          player.level = typeof saveData.player.level === "number" ? saveData.player.level : 1;
+          player.bankGold = typeof saveData.player.bankGold === "number" ? saveData.player.bankGold : 0;
+          player.inventory = Array.isArray(saveData.player.inventory) ? JSON.parse(JSON.stringify(saveData.player.inventory)) : [];
+          player.bag = Array.isArray(saveData.player.bag) ? JSON.parse(JSON.stringify(saveData.player.bag)) : [];
+          player.equipment = typeof saveData.player.equipment === "object" && saveData.player.equipment !== null
+           ? JSON.parse(JSON.stringify(saveData.player.equipment))
+           : { helmet: null, weapon: null, armor: null, ring: null, arrows: null, cloak: null, shield: null, amulet: null, gloves: null, boots: null };
+          player.bank = Array.isArray(saveData.player.bank) ? JSON.parse(JSON.stringify(saveData.player.bank)) : [];
+          playerPosition.x = typeof saveData.playerPosition.x === "number" ? saveData.playerPosition.x : Math.floor(mapSize/2);
+          playerPosition.y = typeof saveData.playerPosition.y === "number" ? saveData.playerPosition.y : Math.floor(mapSize/2);
+          renderPlayerStats();
+          renderDerivedStats();
+          renderEquipment();
+          renderBagInv();
+          renderMap();
+          alert('Game loaded from file! Map has been reset and player is at Central Town.');
+          if (document.getElementById('username-overlay').style.display !== 'none') {
+           document.getElementById('username-overlay').style.display = 'none';
+           const overlayLoadBtn2 = document.getElementById('overlay-load-btn2');
+           if (overlayLoadBtn2) overlayLoadBtn2.style.display = 'none';
+          }
+          document.body.removeChild(lastValuesInput);
+        };
+        lastReader.readAsText(lastFile);
+       };
+
+       // Prompt user to upload last-game-values.json
+       alert('Please select your last-game-values.json file for safety check.');
+       lastValuesInput.click();
+
+      } catch (err) {
+       alert('Failed to load save: ' + (err && err.message ? err.message : err));
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+   } catch (err) {
+    alert('Failed to load save: ' + (err && err.message ? err.message : err));
+   }
+   if (origLoadHandler) origLoadHandler.call(this, e);
+  };
+}
 
 })();
 </script>
