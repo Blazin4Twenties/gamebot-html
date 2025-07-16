@@ -5096,23 +5096,6 @@ if (!document.getElementById('prayer-altar-panel')) {
     setTimeout(() => { msg.style.display = 'none'; }, 1800);
   };
 }
-    // Insert below prayer panel
-    const prayerPanel = document.getElementById('prayer-panel');
-    if (prayerPanel && prayerPanel.parentNode) {
-      prayerPanel.parentNode.insertBefore(altarPanel, prayerPanel.nextSibling);
-    }
-    // Renew Prayer button logic
-    document.getElementById('renew-prayer-btn').onclick = function() {
-      player.prayer = player.maxPrayer;
-      updatePrayerUI();
-      renderPlayerStats();
-      const msg = document.getElementById('renew-prayer-msg');
-      msg.textContent = 'Your prayer has been renewed!';
-      msg.style.display = 'block';
-      setTimeout(() => { msg.style.display = 'none'; }, 1800);
-    };
-  }
-
 /* --- SIMPLE SAFETY CHECK FOR USER SAVE FILE ---
   Store last saved values in a separate JSON file and always update values on save.
 */
