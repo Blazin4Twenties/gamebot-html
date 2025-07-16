@@ -5052,7 +5052,7 @@ function handlePrayerInterval() {
   `;
   document.head.appendChild(style);
 
- // --- PRAYER ALTAR UI ---
+// --- PRAYER ALTAR UI ---
 // Check if the altar panel already exists
 if (!document.getElementById('prayer-altar-panel')) {
   const altarPanel = document.createElement('div');
@@ -5060,9 +5060,9 @@ if (!document.getElementById('prayer-altar-panel')) {
   altarPanel.className = 'panel';
   altarPanel.style.display = 'flex'; // Make sure it's visible
 
-  // Set background image and styles
-  altarPanel.style.background = "#292c31 url('https://static.wikia.nocookie.net/runescape2/images/0/06/Chaos_altar.png/revision/latest?cb=20131227214625') center/cover no-repeat";
-  altarPanel.style.backgroundSize = "45%";
+  // Set background image and styles (use local image!)
+  altarPanel.style.background = "#292c31 url('assets/chaos_altar.png.png') center/cover no-repeat";
+  altarPanel.style.backgroundSize = "55%";
   altarPanel.style.backgroundPosition = "center";
   altarPanel.style.width = "220px";
   altarPanel.style.height = "220px";
@@ -5079,7 +5079,23 @@ if (!document.getElementById('prayer-altar-panel')) {
         <button id="renew-prayer-btn" style="margin-bottom:18px;font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
         <div style="height:125px;"></div>
         <div id="renew-prayer-msg" style="color:#6cf;font-size:1em;display:none;text-align:center;width:90%;margin-top:4px;"></div>
-    `;
+  `;
+  // Insert below prayer panel
+  const prayerPanel = document.getElementById('prayer-panel');
+  if (prayerPanel && prayerPanel.parentNode) {
+    prayerPanel.parentNode.insertBefore(altarPanel, prayerPanel.nextSibling);
+  }
+  // Renew Prayer button logic
+  document.getElementById('renew-prayer-btn').onclick = function() {
+    player.prayer = player.maxPrayer;
+    updatePrayerUI();
+    renderPlayerStats();
+    const msg = document.getElementById('renew-prayer-msg');
+    msg.textContent = 'Your prayer has been renewed!';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 1800);
+  };
+}
     // Insert below prayer panel
     const prayerPanel = document.getElementById('prayer-panel');
     if (prayerPanel && prayerPanel.parentNode) {
