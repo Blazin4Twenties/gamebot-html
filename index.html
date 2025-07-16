@@ -5058,42 +5058,58 @@ if (!document.getElementById('prayer-altar-panel')) {
   const altarPanel = document.createElement('div');
   altarPanel.id = 'prayer-altar-panel';
   altarPanel.className = 'panel';
-  altarPanel.style.display = 'flex'; // Make sure it's visible
+  altarPanel.style.display = 'flex';
 
-  // Set background image and styles (use local image!)
-  altarPanel.style.background = "#292c31 url('assets/chaos_altar.png') center/cover no-repeat";
-  altarPanel.style.backgroundSize = "55%";
-  altarPanel.style.backgroundPosition = "center";
-  altarPanel.style.width = "220px";
-  altarPanel.style.height = "220px";
-  altarPanel.style.borderRadius = "50%";
-  altarPanel.style.padding = "16px";
-  altarPanel.style.boxShadow = "0 20px 20px #000a";
-  altarPanel.style.flexDirection = "column";
-  altarPanel.style.alignItems = "center";
-  altarPanel.style.marginTop = "12px";
-  altarPanel.style.marginRight = "auto";
-  altarPanel.style.marginLeft = "auto";
   altarPanel.innerHTML = `
-      <div style="margin-bottom:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-        <button id="renew-prayer-btn" style="margin-bottom:18px;font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
-        <div style="height:125px;"></div>
-        <div id="renew-prayer-msg" style="color:#6cf;font-size:1em;display:none;text-align:center;width:90%;margin-top:4px;"></div>
+    <div style="margin-bottom:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="flex:1 1 auto;"></div>
+      <button id="renew-prayer-btn" style="margin-bottom:18px;font-weight:bold;font-size:1.1em;background:#6cf;color:#23252a;border:none;border-radius:8px;padding:8px 32px;cursor:pointer;box-shadow:0 2px 8px #0004;">Renew Prayer</button>
+      <div style="flex:1 1 auto;"></div>
+      <div id="renew-prayer-msg" style="color:#6cf;font-size:1em;display:none;text-align:center;width:90%;margin-top:4px;"></div>
+    </div>
   `;
   // Insert below prayer panel
   const prayerPanel = document.getElementById('prayer-panel');
   if (prayerPanel && prayerPanel.parentNode) {
     prayerPanel.parentNode.insertBefore(altarPanel, prayerPanel.nextSibling);
   }
-  // Renew Prayer button logic
+  // Renew Prayer button logic with altar popup
   document.getElementById('renew-prayer-btn').onclick = function() {
+    let oldPopup = document.getElementById('prayer-altar-popup');
+    if (oldPopup) oldPopup.remove();
+    const popup = document.createElement('div');
+    popup.id = 'prayer-altar-popup';
+    popup.style = 'position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+    popup.innerHTML = `
+      <div style="background:linear-gradient(135deg,#23252a 80%,#6cf 100%);padding:22px 28px 18px 28px;border-radius:16px;box-shadow:0 2px 18px #6cf8,0 0 8px #fff;display:flex;flex-direction:column;align-items:center;min-width:220px;max-width:320px;position:relative;">
+      <div style="font-size:2em;margin-bottom:8px;">🕯️</div>
+      <div style="color:#6cf;font-size:1.1em;font-weight:bold;margin-bottom:8px;text-shadow:0 2px 8px #23252a88,0 0 4px #fff;">Prayer Altar</div>
+      <div style="margin-bottom:12px;color:#fff;text-align:center;">
+        <span style="color:#ffd36b;">Renew your prayer at the altar.<br>Divine energy restores you!</span>
+      </div>
+      <div style="margin:10px 0;">
+        <svg width="60" height="40" viewBox="0 0 80 60">
+        <ellipse cx="40" cy="50" rx="30" ry="8" fill="#23252a" />
+        <rect x="30" y="20" width="20" height="30" rx="6" fill="#6cf" stroke="#ffd36b" stroke-width="2"/>
+        <rect x="36" y="10" width="8" height="18" rx="3" fill="#ffd36b" />
+        <circle cx="40" cy="10" r="5" fill="#fff" opacity="0.7"/>
+        </svg>
+      </div>
+      <div id="altar-renew-msg" style="color:#6cf;font-size:0.98em;display:none;text-align:center;width:90%;margin-top:8px;"></div>
+      </div>
+    `;
+    document.body.appendChild(popup);
+
+    // Automatically renew prayer, show message, and close popup
     player.prayer = player.maxPrayer;
     updatePrayerUI();
     renderPlayerStats();
-    const msg = document.getElementById('renew-prayer-msg');
-    msg.textContent = 'Your prayer has been renewed!';
+    const msg = document.getElementById('altar-renew-msg');
+    msg.textContent = '✨ Your prayer has been renewed at the altar! ✨';
     msg.style.display = 'block';
-    setTimeout(() => { msg.style.display = 'none'; }, 1800);
+    setTimeout(() => {
+      popup.remove();
+    }, 1600);
   };
 }
 /* --- SIMPLE SAFETY CHECK FOR USER SAVE FILE ---
