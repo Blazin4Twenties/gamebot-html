@@ -1999,6 +1999,9 @@ const ancientBossData = {
 let ancientBossActive = false;
 let ancientBossShopLocked = false; // Track if shop should be locked due to boss
 
+// Track if the 1-hit kill sword has been used on the boss in this encounter
+let ancientBossFirstHit = false;
+
 if (!document.getElementById('ancient-boss-popup')) {
   const bossPopup = document.createElement('div');
   bossPopup.id = 'ancient-boss-popup';
@@ -2088,6 +2091,7 @@ function showAncientBoss() {
     isBoss: true
   };
   inCombat = true;
+  ancientBossFirstHit = false; // Reset first hit tracker for this encounter
   renderEnemyEncounter();
   logMsg(`<span style="color:#e53935;font-weight:bold;">A Special Boss has appeared!</span>`);
   ancientBossShopLocked = true;
@@ -2179,6 +2183,30 @@ window.attackEnemy = function() {
   }
   // Boss logic
   if (currentEnemy.isBoss) {
+    // Check for 1-hit kill sword and first hit
+    if (
+      player.equipment.weapon &&
+      player.equipment.weapon.name === "Debug 1-Hit Sword" &&
+      !ancientBossFirstHit
+    ) {
+      let hit = 1000;
+      currentEnemy.health = Math.max(0, currentEnemy.health - hit);
+      showHitsplat(hit);
+      logMsg(`<span style="color:#ff4444;font-weight:bold;">You unleash the Debug 1-Hit Sword! The Ancient Boss takes <b>${hit}</b> damage!</span>`);
+      ancientBossFirstHit = true;
+      renderEnemyEncounter();
+      if (currentEnemy.health <= 0) {
+        player.experience += currentEnemy.xp;
+        checkLevelUp();
+        giveAncientBossRewards();
+        ancientBossActive = false;
+        clearEnemy();
+        renderPlayerStats();
+        return;
+      }
+      setTimeout(()=>{ enemyAttack(); }, 700);
+      return;
+    }
     let pAtk = (player.equipment.weapon ? player.equipment.weapon.attackPower||8 : 6)
       + (player.equipment.ring ? player.equipment.ring.attackPower||0 : 0);
     let hit = randomStat(30, 90);
@@ -2200,8 +2228,10 @@ window.attackEnemy = function() {
   }
   // Normal enemy
   origAttackEnemy && origAttackEnemy();
-};
 
+  // Normal enemy
+  origAttackEnemy && origAttackEnemy();
+};
 
 function randomStat(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -3535,7 +3565,7 @@ function attackEnemy() {
     logMsg("No enemy to attack.");
     return;
   }
-  // Debug 1-Hit Kill Sword logic (works for all enemies including Ancient Boss)
+  // Debug 1-Hit Kill Sword logic (works for all enemies including Ancient Boss and forced encounters)
   if (
     player.equipment.weapon &&
     player.equipment.weapon.name === "Debug 1-Hit Sword"
@@ -3553,9 +3583,9 @@ function attackEnemy() {
     logMsg(`<span style="color:#90ee90"><b>You defeated the ${currentEnemy.name}!</b></span> +${currentEnemy.xp} XP${goldMsg} and found ${randomItem.name}`);
     player.experience += currentEnemy.xp;
     checkLevelUp();
-    // If Ancient Boss, give boss rewards and reset boss state
-    if (currentEnemy.isBoss) {
-      giveAncientBossRewards && giveAncientBossRewards();
+    // Always trigger boss rewards if Ancient Boss is killed
+    if (currentEnemy.name === "Ancient Boss" || currentEnemy.isBoss) {
+      if (typeof giveAncientBossRewards === "function") giveAncientBossRewards();
       ancientBossActive = false;
     }
     clearEnemy();
@@ -5765,11 +5795,7 @@ if (mainLoadInput) {
         <div class="debug-section">
           <button id="debug-1hit-weapon" style="background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Give 1-Hit Kill Weapon</button>
         </div>
-        <div class="debug-section">
-          <label>Force Spawn Enemy:</label>
-          <select id="debug-enemy-list"></select>
-          <button id="debug-spawn-enemy" style="margin-left:8px;">Spawn</button>
-        </div>
+        <!-- Force Spawn Enemy section removed -->
         <div class="debug-section">
           <label>Force Encounter:</label>
           <select id="debug-encounter-list"></select>
@@ -5804,60 +5830,11 @@ if (mainLoadInput) {
       logMsg('<span style="color:#ff4444;">Debug: 1-Hit Kill Weapon added to bag.</span>');
       renderBagInv && renderBagInv();
     };
-    document.getElementById('debug-spawn-enemy').onclick = function() {
-      let name = document.getElementById('debug-enemy-list').value;
-      if (!name) return;
-      if (name === (window.ancientBossData && window.ancientBossData.name)) {
-        window.showAncientBoss && window.showAncientBoss();
-        logMsg('<span style="color:#ff4444;">Debug: Ancient Boss spawned.</span>');
-      } else {
-        // Use the hardcoded debug enemy list
-        let enemy = (window._debugEnemiesList || []).find(e => e.name === name);
-        if (enemy) {
-          // If enemy has random stats, re-randomize on spawn
-          let spawned = Object.assign({}, enemy);
-          if (typeof spawned.maxHealth === "function") spawned.maxHealth = spawned.maxHealth();
-          if (typeof spawned.xp === "function") spawned.xp = spawned.xp();
-          // For enemies with random stats, recalculate
-          if (spawned.name && [
-            "Dark Knight", "Fire Elemental", "Stone Golem", "Vampire Lord", "Frost Giant",
-            "Shadow Assassin", "Ancient Dragon", "Lich King", "Forest Guardian", "Thunder Beast"
-          ].includes(spawned.name)) {
-            spawned.maxHealth = Math.floor(Math.random() * 101) + 150;
-            spawned.xp = Math.floor(Math.random() * 51) + 50;
-          }
-          currentEnemy = {
-            name: spawned.name,
-            health: spawned.maxHealth,
-            maxHealth: spawned.maxHealth,
-            minAttack: spawned.minAttack,
-            maxAttack: spawned.maxAttack,
-            xp: spawned.xp
-          };
-          inCombat = true;
-          if (typeof renderEnemyEncounter === "function") renderEnemyEncounter();
-          // Ensure enemy encounter UI is visible and updated
-          const enemyDiv = document.getElementById('enemy-encounter');
-          if (enemyDiv) {
-            enemyDiv.style.display = "flex";
-            // Also update the enemy name and HP bar
-            if (window.currentEnemy) {
-              document.getElementById('enemy-name-label').textContent = window.currentEnemy.name;
-              const percent = Math.max(0, 100 * window.currentEnemy.health / window.currentEnemy.maxHealth);
-              document.getElementById('enemy-hp-bar-inner').style.width = percent + "%";
-              document.getElementById('enemy-hp-bar-text').textContent = `${window.currentEnemy.health}/${window.currentEnemy.maxHealth}`;
-              document.getElementById('enemy-image').innerHTML = `${window.currentEnemy.name}`;
-            }
-          }
-          logMsg(`<span style="color:#ff4444;">Debug: Spawned enemy "${spawned.name}".</span>`);
-        }
-      }
-      popup.style.display = 'none';
-    };
     document.getElementById('debug-force-encounter').onclick = function() {
       let enc = document.getElementById('debug-encounter-list').value;
+      if (!enc) return;
       if (enc === "Normal Enemy") {
-        window.showEnemy && window.showEnemy();
+        showEnemy && showEnemy();
         logMsg('<span style="color:#ff4444;">Debug: Forced normal enemy encounter.</span>');
       } else if (enc === "Ancient Boss") {
         window.showAncientBoss && window.showAncientBoss();
