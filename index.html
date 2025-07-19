@@ -286,7 +286,7 @@
         </ul>
       </p>
       <p>
-        Your destiny awaits. Will you accept your fate and begin your journey?
+        Your destiny awaits. Will you accept your fate and begin your legend?
       </p>
     </div>
     <button id="accept-fate-btn">Accept Fate</button>
@@ -1742,18 +1742,16 @@
 <div id="map-index">
 <div class="map-index-item"><span class="map-index-color" style="background:#e53935"></span>Central Town</div>
 <div class="map-index-item"><span class="map-index-color" style="background:#3887e0"></span>Town</div>
-<div class="map-index-item"><span class="map-index-color" style="background:#ffe066"></span>Area (Undiscovered)</div>
+<div class="map-index-item"><span class="map-index-color" style="background:#444"></span>Area (Undiscovered)</div>
 <div class="map-index-item"><span class="map-index-color" style="background:#2e7d32"></span>Area (Discovered)</div>
 <div class="map-index-item"><span class="map-index-color" style="background:#bfae44"></span>Chest</div>
-<div class="map-index-item"><span class="map-index-color" style="background:#444"></span>Unknown</div>
+
 </div>
 <div id="game-map"></div>
 <div id="map-controls">
-<button class="map-move-btn" onclick="movePlayer(-1,0)">⬅️</button>
-<button class="map-move-btn" onclick="movePlayer(0,-1)">⬆️</button>
-<button class="map-move-btn" onclick="movePlayer(1,0)">➡️</button>
-<button class="map-move-btn" onclick="movePlayer(0,1)">⬇️</button>
+
 </div>
+</script>
 <div id="map-area-label"></div>
 </div>
 </div>
@@ -1999,6 +1997,8 @@ const ancientBossData = {
   xp: 1000
 };
 let ancientBossActive = false;
+let ancientBossShopLocked = false; // Track if shop should be locked due to boss
+
 if (!document.getElementById('ancient-boss-popup')) {
   const bossPopup = document.createElement('div');
   bossPopup.id = 'ancient-boss-popup';
@@ -2032,6 +2032,8 @@ if (!document.getElementById('ancient-boss-popup')) {
 document.getElementById('ancient-boss-fight').onclick = function() {
   document.getElementById('ancient-boss-popup').style.display = 'none';
   showAncientBoss();
+  ancientBossShopLocked = true;
+  showShopClosedOverlay && showShopClosedOverlay();
 };
 // --- PATCH: Ancient Boss Run Option with Chance to Fail ---
 document.getElementById('ancient-boss-run').onclick = function() {
@@ -2040,6 +2042,8 @@ document.getElementById('ancient-boss-run').onclick = function() {
   if (Math.random() < 0.6) {
     logMsg('You successfully ran away from the Ancient Boss!');
     ancientBossActive = false;
+    ancientBossShopLocked = false;
+    hideShopClosedOverlay && hideShopClosedOverlay();
   } else {
     // Fail: Boss hits player for 25% of their max health
     let damage = Math.floor(getTotalMaxHealth() * 0.25);
@@ -2049,15 +2053,25 @@ document.getElementById('ancient-boss-run').onclick = function() {
     if (player.health <= 0) {
       logMsg(`<span style="color:#f44;font-weight:bold;">You died! Respawning at town...</span>`);
       respawnPlayer();
+      ancientBossActive = false;
+      ancientBossShopLocked = false;
+      hideShopClosedOverlay && hideShopClosedOverlay();
+    } else {
+      // Shop should remain locked only if player is still alive
+      ancientBossShopLocked = true;
+      showShopClosedOverlay && showShopClosedOverlay();
     }
-    ancientBossActive = false;
   }
 };
 
 const origShowEnemy = typeof showEnemy === "function" ? showEnemy : null;
 function maybeAncientBossEncounter() {
-  if (!ancientBossActive && Math.random() < 0.15) {
+  // Prevent boss encounter if already in combat or boss is active
+  if (inCombat || ancientBossActive) return false;
+  if (Math.random() < 0.15) {
     ancientBossActive = true;
+    ancientBossShopLocked = true;
+    showShopClosedOverlay && showShopClosedOverlay();
     document.getElementById('ancient-boss-popup').style.display = 'flex';
     return true;
   }
@@ -2076,11 +2090,14 @@ function showAncientBoss() {
   inCombat = true;
   renderEnemyEncounter();
   logMsg(`<span style="color:#e53935;font-weight:bold;">A Special Boss has appeared!</span>`);
+  ancientBossShopLocked = true;
+  showShopClosedOverlay && showShopClosedOverlay();
 }
-
-// Patch all places where showEnemy is called to maybeAncientBossEncounter
 function patchedRandomEncounter() {
+  // Prevent any encounter if already in combat or boss is active
+  if (inCombat || ancientBossActive) return;
   if (maybeAncientBossEncounter()) return;
+
   origShowEnemy && origShowEnemy();
 }
 // Replace showEnemy calls in movePlayer, doExplore, etc.
@@ -2119,6 +2136,8 @@ function giveAncientBossRewards() {
   });
   logMsg(`<span style="color:gold;font-weight:bold;">You defeated the Ancient Boss!<br>
     <span style="color:#ffba3a;">Ancient Sword</span> and <span style="color:#90ee90;">Ancient Armor Set</span> have been added to your inventory!</span>`);
+  ancientBossShopLocked = false;
+  hideShopClosedOverlay && hideShopClosedOverlay();
 }
 
 // --- Ancient Set Bonus Logic ---
@@ -2182,6 +2201,7 @@ window.attackEnemy = function() {
   // Normal enemy
   origAttackEnemy && origAttackEnemy();
 };
+
 
 function randomStat(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -2377,73 +2397,324 @@ function renderMap() {
       }
       map.innerHTML += `<div class="${cellClass}" data-x="${x}" data-y="${y}" onclick="mapCellClick(${x},${y})" title="${cell.type === 'area' || cell.type === 'discovered' ? cell.name : cell.name || ''}">${label}</div>`;
     }
+    }
+    let areaLabel = "";
+    let cell = mapData[playerPosition.y][playerPosition.x];
+    if (cell.type === "central-town") areaLabel = "Area: Central Town";
+    else if (cell.type === "town") areaLabel = "Area: " + cell.name;
+    else if (cell.type === "chest") areaLabel = "Area: Chest";
+    else if (!discovered[playerPosition.y][playerPosition.x]) areaLabel = "Area: Not Discovered";
+    else areaLabel = "Area: " + (cell.name || "Discovered");
+    document.getElementById("map-area-label").textContent = areaLabel;
   }
-  let areaLabel = "";
-  let cell = mapData[playerPosition.y][playerPosition.x];
-  if (cell.type === "central-town") areaLabel = "Area: Central Town";
-  else if (cell.type === "town") areaLabel = "Area: " + cell.name;
-  else if (cell.type === "chest") areaLabel = "Area: Chest";
-  else if (!discovered[playerPosition.y][playerPosition.x]) areaLabel = "Area: Not Discovered";
-  else areaLabel = "Area: " + (cell.name || "Discovered");
-  document.getElementById("map-area-label").textContent = areaLabel;
-}
-function mapCellClick(x, y) {
-  // If player is on a chest, allow to open
-  if (x === playerPosition.x && y === playerPosition.y && mapData[y][x].type === "chest") {
+
+  // --- Secret Tunnel Encounter Logic ---
+  let movesSinceLastTunnel = 0;
+  let nextTunnelMove = Math.floor(Math.random() * 5) + 5; // 5-9 moves for first tunnel (more frequent)
+
+  function maybeShowSecretTunnel() {
+    // Only trigger tunnel if not in combat or chest open or popup already open
+    if (inCombat || chestOpen || document.getElementById('secret-tunnel-popup')) return;
+    movesSinceLastTunnel++;
+    // Increase chance if map is mostly discovered
+    let discoveredCount = 0;
+    let totalCells = mapSize * mapSize;
+    for (let y = 0; y < mapSize; ++y) {
+      for (let x = 0; x < mapSize; ++x) {
+        if (discovered[y][x]) discoveredCount++;
+      }
+    }
+    let discoveredRatio = discoveredCount / totalCells;
+    // If map is >80% discovered, halve the required moves for next tunnel
+    let tunnelThreshold = nextTunnelMove;
+    if (discoveredRatio > 0.8) {
+      tunnelThreshold = Math.floor(nextTunnelMove / 2);
+    }
+    if (movesSinceLastTunnel >= tunnelThreshold) {
+      // Reset for next tunnel, make next tunnel also more frequent
+      movesSinceLastTunnel = 0;
+      nextTunnelMove = Math.floor(Math.random() * 6) + 5; // 5-10 moves
+      showSecretTunnelPopup();
+    }
+  }
+
+  function showSecretTunnelPopup() {
+    // Remove old popup if exists
+    let oldPopup = document.getElementById('secret-tunnel-popup');
+    if (oldPopup) oldPopup.remove();
+    const popup = document.createElement('div');
+    popup.id = 'secret-tunnel-popup';
+    popup.style = 'position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+    popup.innerHTML = `
+    <div style="background:#23252a;padding:32px 38px 24px 38px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:320px;">
+      <div style="color:#ffd36b;font-size:1.3em;margin-bottom:18px;">You have found a secret tunnel!</div>
+      <div style="margin-bottom:18px;color:#fff;">Do you wish to enter the tunnel at your own risk?</div>
+      <div style="display:flex;gap:18px;">
+      <button id="secret-tunnel-enter" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Enter at your own risk</button>
+      <button id="secret-tunnel-back" style="font-size:1.1em;font-weight:bold;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Go back</button>
+      </div>
+    </div>
+    `;
+    document.body.appendChild(popup);
+
+    document.getElementById('secret-tunnel-back').onclick = function() {
+      popup.remove();
+      logMsg(`<span style="color:#ffd36b;">You decided not to enter the secret tunnel.</span>`);
+    };
+    document.getElementById('secret-tunnel-enter').onclick = function() {
+      popup.remove();
+      // 50% chance for success/failure
+      if (Math.random() < 0.5) {
+        // Success: grant chest with random item + 1000 gold, and enchant item stats x5
+        let rewardItem = JSON.parse(JSON.stringify(items[Math.floor(Math.random() * items.length)]));
+        let originalStats = {};
+        // Save original stats for log
+        if (typeof rewardItem.attackPower === "number") originalStats.attackPower = rewardItem.attackPower;
+        if (typeof rewardItem.defense === "number") originalStats.defense = rewardItem.defense;
+        if (typeof rewardItem.health === "number") originalStats.health = rewardItem.health;
+        if (typeof rewardItem.heal === "number") originalStats.heal = rewardItem.heal;
+        // Enchant stats x5
+        if (typeof rewardItem.attackPower === "number") rewardItem.attackPower *= 5;
+        if (typeof rewardItem.defense === "number") rewardItem.defense *= 5;
+        if (typeof rewardItem.health === "number") rewardItem.health *= 5;
+        if (typeof rewardItem.heal === "number") rewardItem.heal *= 5;
+        addItem(rewardItem);
+        player.gold += 1000;
+        updateAllStats();
+
+        // Fancier popup for secret tunnel reward
+        let oldPopup = document.getElementById('secret-tunnel-reward-popup');
+        if (oldPopup) oldPopup.remove();
+        const popup = document.createElement('div');
+        popup.id = 'secret-tunnel-reward-popup';
+        popup.style = 'position:fixed;z-index:10000;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+        popup.innerHTML = `
+        <div style="background:linear-gradient(135deg,#23252a 80%,#ffd700 100%);padding:44px 54px 38px 54px;border-radius:28px;box-shadow:0 4px 32px #ffd70088,0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:380px;position:relative;">
+          <div style="font-size:3em;margin-bottom:12px;animation: chestShine 1.2s infinite alternate;">🪙✨</div>
+          <div style="color:#ffd700;font-size:1.6em;font-weight:bold;margin-bottom:18px;text-shadow:0 2px 8px #23252a88,0 0 4px #fff;">Secret Tunnel Treasure!</div>
+          <div style="margin-bottom:18px;font-size:1.15em;color:#fff;text-align:center;">
+          <span style="color:#ffd36b;">You bravely enter the tunnel and discover a <b>mysterious chest</b>!</span><br>
+          <span style="color:gold;">Inside you find:</span><br>
+          <span style="color:#ffe066;font-weight:bold;">${rewardItem.name}</span>
+          <span style="color:#ffd36b;">(Enchanted x5!)</span><br>
+          <span style="color:gold;font-size:1.2em;">+1000 Gold</span>
+          </div>
+          <div style="margin-bottom:10px;color:#ffd36b;font-size:1.05em;">
+          <b>Original Stats:</b> ${Object.entries(originalStats).map(([k,v])=>k+':'+v).join(', ')}
+          </div>
+          <div style="margin-bottom:18px;color:#ffd700;font-size:1.05em;">
+          <b>The chest's magic multiplies your item's stats by <span style="color:#ffba3a;">x5</span>!</b>
+          </div>
+          <button onclick="document.getElementById('secret-tunnel-reward-popup').remove()" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:9px;padding:10px 38px;cursor:pointer;box-shadow:0 2px 14px #ffd70088;transition:background 0.18s, color 0.18s;">Awesome!</button>
+        </div>
+        <style>
+          @keyframes chestShine {
+          0% { filter: drop-shadow(0 0 8px #ffd70088); }
+          100% { filter: drop-shadow(0 0 32px #ffd700cc); }
+          }
+        </style>
+        `;
+        document.body.appendChild(popup);
+
+        logMsg(`<span style="color:gold;font-weight:bold;">You bravely enter the tunnel and find a hidden chest!<br>Inside you find <b>${rewardItem.name}</b> and <b>1000 gold</b>!</span>`);
+        logMsg(`<span style="color:gold;font-weight:bold;">${player.name} has obtained <b>${rewardItem.name}</b> (Original: ${Object.entries(originalStats).map(([k,v])=>k+':'+v).join(', ')})</span>`);
+        logMsg(`<span style="color:#ffd700;font-weight:bold;">The strange chest has enchanted your item by x5 its original stats!</span>`);
+      } else {
+        // Failure: Unknown Enemy encounter
+        showUnknownEnemyEncounter();
+      }
+    };
+  }
+
+  function showUnknownEnemyEncounter() {
+    // Remove any existing enemy encounter
+    clearEnemy();
+    // Set a special flag for unknown enemy
+    window._unknownEnemyActive = true;
+    inCombat = true;
+    // Show popup for unknown enemy
+    let enemyDiv = document.getElementById('enemy-encounter');
+    if (enemyDiv) {
+      enemyDiv.style.display = "flex";
+      document.getElementById('enemy-hp-bar-inner').style.width = "100%";
+      document.getElementById('enemy-hp-bar-text').textContent = `Unknown/Unknown`;
+      document.getElementById('enemy-image').innerHTML = `❓❓❓`;
+      document.getElementById('enemy-name-label').textContent = "Unknown Enemy";
+      // Hide normal attack/run buttons, show only "Fight" button
+      document.getElementById('enemy-controls').innerHTML = `
+        <button class="enemy-action-btn" id="unknown-enemy-fight-btn" style="background:#ff4444;color:#fff;">Fight</button>
+      `;
+      document.getElementById('unknown-enemy-fight-btn').onclick = function() {
+        // Instant kill logic
+        let goldLostPercent = Math.floor(Math.random() * 31) + 20; // 20-50%
+        let goldLost = Math.floor(player.gold * (goldLostPercent / 100));
+        player.gold = Math.max(0, player.gold - goldLost);
+        player.health = 0;
+        logMsg(`<span style="color:#ff4444;font-weight:bold;">The Unknown Enemy strikes! You are instantly killed!</span>`);
+        logMsg(`<span style="color:#ffd36b;">You lost <b>${goldLost}</b> gold (${goldLostPercent}%) and respawn at Central Town.</span>`);
+        respawnPlayer();
+        window._unknownEnemyActive = false;
+        // Restore normal enemy controls for future encounters
+        setTimeout(() => {
+          clearEnemy();
+          renderPlayerStats();
+          // Restore enemy controls UI if another enemy appears
+          const enemyDiv = document.getElementById('enemy-encounter');
+          if (enemyDiv) {
+            document.getElementById('enemy-controls').innerHTML = `
+              <button class="enemy-action-btn" id="attack-enemy-btn" onclick="attackEnemy()">Attack</button>
+              <button class="enemy-action-btn" id="run-enemy-btn" onclick="runFromEnemy()">Run</button>
+            `;
+          }
+        }, 100);
+        alert('You were instantly killed by the Unknown Enemy! Some of your gold was lost.');
+      };
+    }
+  }
+
+  // Patch movePlayer and doExplore to call maybeShowSecretTunnel
+  const origMovePlayerForTunnel = typeof movePlayer === "function" ? movePlayer : null;
+  movePlayer = function(dx, dy) {
+    if (origMovePlayerForTunnel) origMovePlayerForTunnel(dx, dy);
+    maybeShowSecretTunnel();
+  };
+  const origDoExploreForTunnel = typeof doExplore === "function" ? doExplore : null;
+  doExplore = function() {
+    if (origDoExploreForTunnel) origDoExploreForTunnel();
+    maybeShowSecretTunnel();
+  };
+
+  function mapCellClick(x, y) {
+    // If player is on a chest, allow to open
+    if (x === playerPosition.x && y === playerPosition.y && mapData[y][x].type === "chest") {
     openChest();
+    }
   }
-}
-function movePlayer(dx,dy) {
-  if (inCombat || chestOpen) {
+  function movePlayer(dx,dy) {
+    if (inCombat || chestOpen) {
     logMsg('You cannot move while fighting or opening a chest!');
     return;
-  }
-  let nx = Math.max(0, Math.min(mapSize-1, playerPosition.x+dx));
-  let ny = Math.max(0, Math.min(mapSize-1, playerPosition.y+dy));
-  playerPosition.x = nx;
-  playerPosition.y = ny;
-  discovered[ny][nx] = true;
-  renderMap();
-  let cell = mapData[ny][nx];
-  if (cell.type === "central-town") {
+    }
+    let nx = Math.max(0, Math.min(mapSize-1, playerPosition.x+dx));
+    let ny = Math.max(0, Math.min(mapSize-1, playerPosition.y+dy));
+    playerPosition.x = nx;
+    playerPosition.y = ny;
+    discovered[ny][nx] = true;
+    renderMap();
+    let cell = mapData[ny][nx];
+    if (cell.type === "central-town") {
     logMsg(`Arrived at <b>Central Town</b>.`);
-  } else if (cell.type === "town") {
+    } else if (cell.type === "town") {
     showTownPopup(cell.name);
     logMsg(`Arrived at town: <b>${cell.name}</b>.`);
     return; // Wait for popup interaction
-  } else if (cell.type === "chest") {
+    } else if (cell.type === "chest") {
     logMsg("You found a chest!");
     openChest();
     return;
-  } else if (!discovered[ny][nx]) {
+    } else if (!discovered[ny][nx]) {
     logMsg("You entered a not discovered area.");
-  } else {
+    } else {
     logMsg("You entered: <b>" + (cell.name || "a discovered area") + "</b>.");
-  }
-  // Random town events
-  if (cell.type === "town" && Math.random() < 0.5) {
+    }
+    // Random town events
+    if (cell.type === "town" && Math.random() < 0.5) {
     triggerRandomTownEvent();
-  }
-  // Random area events
-  if (cell.type === "area" && discovered[ny][nx] && Math.random() < 0.15) {
+    }
+    // Random area events
+    if (cell.type === "area" && discovered[ny][nx] && Math.random() < 0.15) {
     triggerRandomAreaEvent();
-  }
-  if (Math.random() < 0.18 && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
+    }
+    if (Math.random() < 0.18 && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
     setTimeout(showEnemy, 350);
+    }
   }
-}
-function startExplore() {
-  if (inCombat || chestOpen) {
+  function startExplore() {
+    if (inCombat || chestOpen) {
     logMsg("Finish your battle or chest first!");
     return;
+    }
+    document.getElementById('direction-select-bar').classList.add('active');
+    // Hide shop if enemy is found during explore (handled in doExplore)
   }
-  document.getElementById('direction-select-bar').classList.add('active');
+  function chooseExploreDir(dx, dy) {
+    document.getElementById('direction-select-bar').classList.remove('active');
+    exploreDir = {dx, dy};
+    doExplore();
+  }
+
+// --- SHOP CLOSED DURING COMBAT LOGIC ---
+function showShopClosedOverlay() {
+  let overlay = document.getElementById('shop-closed-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'shop-closed-overlay';
+    overlay.style = `
+      position:absolute;
+      top:0;left:0;width:100%;height:100%;
+      background:rgba(25,26,30,0.92);
+      z-index:200;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      pointer-events:auto;
+    `;
+    overlay.innerHTML = `
+      <div style="position:relative;z-index:202;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;">
+      <div style="color:#ff4444;font-size:2em;font-weight:bold;text-shadow:0 2px 8px #000a;margin-bottom:10px;">Shop Locked!</div>
+      <div style="color:#ffd36b;font-size:1.1em;margin-bottom:10px;">The Shop keep doesnt want any company!<br>Defeat the enemy or run away to reopen the shop.</div>
+      <div style="font-size:2.5em;filter:grayscale(0.7);margin-bottom:8px;">🔒</div>
+      </div>
+    `;
+    const shopPanel = document.getElementById('shop');
+    if (shopPanel) {
+      shopPanel.style.position = 'relative';
+      shopPanel.appendChild(overlay);
+    }
+  } else {
+    overlay.style.display = 'flex';
+  }
 }
-function chooseExploreDir(dx, dy) {
-  document.getElementById('direction-select-bar').classList.remove('active');
-  exploreDir = {dx, dy};
-  doExplore();
+function hideShopClosedOverlay() {
+  let overlay = document.getElementById('shop-closed-overlay');
+  if (overlay) overlay.style.display = 'none';
 }
+
+// Patch showEnemy to show shop closed overlay
+const origShowEnemyForShop = typeof showEnemy === "function" ? showEnemy : null;
+window.showEnemy = function() {
+  showShopClosedOverlay();
+  origShowEnemyForShop && origShowEnemyForShop();
+};
+
+// Patch clearEnemy to hide shop closed overlay
+const origClearEnemyForShop = typeof clearEnemy === "function" ? clearEnemy : null;
+window.clearEnemy = function() {
+  hideShopClosedOverlay();
+  origClearEnemyForShop && origClearEnemyForShop();
+};
+
+// Also hide overlay if player runs away or dies (runFromEnemy, respawnPlayer)
+const origRunFromEnemyForShop = typeof runFromEnemy === "function" ? runFromEnemy : null;
+window.runFromEnemy = function() {
+  if (!currentEnemy || !inCombat) return;
+  // 60% chance to run away
+  if (Math.random() < 0.6) {
+    logMsg(`<span style="color:#9cf">You ran away from the ${currentEnemy.name}!</span>`);
+    clearEnemy();
+    hideShopClosedOverlay();
+  } else {
+    logMsg(`<span style="color:#f77">You failed to run away!</span>`);
+    setTimeout(enemyAttack, 500);
+    // Keep overlay visible
+  }
+};
+const origRespawnPlayerForShop = typeof respawnPlayer === "function" ? respawnPlayer : null;
+window.respawnPlayer = function() {
+  hideShopClosedOverlay();
+  origRespawnPlayerForShop && origRespawnPlayerForShop();
+};
 
 (function() {
   // Remove old button if exists
@@ -2569,21 +2840,24 @@ function autoExploreLoop() {
   discovered[ny][nx] = true;
   renderMap();
   let cell = mapData[ny][nx];
-  // Interactions: stop auto-explore, resume after
+  // Interactions: only log and handle, do not stop auto-explore unless explicitly triggered
   if (cell.type === "central-town") {
     logMsg(`Arrived at <b>Central Town</b>.`);
-    stopAutoExplore();
-    return;
+    // Optionally, you can set a flag here if you want to stop auto-explore on central town
+    // stopAutoExplore();
+    // return;
   } else if (cell.type === "town") {
     showTownPopup(cell.name);
     logMsg(`Arrived at town: <b>${cell.name}</b>.`);
-    stopAutoExplore();
-    return;
+    // Optionally, you can set a flag here if you want to stop auto-explore on town
+    // stopAutoExplore();
+    // return;
   } else if (cell.type === "chest") {
     logMsg("You found a chest!");
     openChest();
-    stopAutoExplore();
-    return;
+    // Optionally, you can set a flag here if you want to stop auto-explore on chest
+    // stopAutoExplore();
+    // return;
   } else if (!discovered[ny][nx]) {
     logMsg("You entered a not discovered area.");
   } else {
@@ -2592,16 +2866,13 @@ function autoExploreLoop() {
   // Random town events
   if (cell.type === "town" && Math.random() < 0.5) {
     triggerRandomTownEvent();
-    stopAutoExplore();
-    return;
+    // Optionally, you can set a flag here if you want to stop auto-explore on random town event
+    // stopAutoExplore();
+    // return;
+
+
   }
-  // Random area events
-  if (cell.type === "area" && discovered[ny][nx] && Math.random() < 0.15) {
-    triggerRandomAreaEvent();
-    stopAutoExplore();
-    return;
-  }
-  // Enemy encounter: stop auto-explore, resume after
+  // Enemy encounter: only stop if auto-attack is not enabled
   if (Math.random() < 0.22 && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
     setTimeout(() => {
       showEnemy();
@@ -2609,9 +2880,8 @@ function autoExploreLoop() {
       if (autoExploreAutoAttack && currentEnemy && inCombat) {
         autoAttackActive = true;
         autoAttackLoopAutoExplore();
-      } else {
-        stopAutoExplore();
       }
+      // else, do not stop auto-explore here; let user stop it manually if desired
     }, 350);
     return;
   }
@@ -2679,8 +2949,12 @@ function doExplore() {
   if (cell.type === "area" && discovered[ny][nx] && Math.random() < 0.15) {
     triggerRandomAreaEvent();
   }
+  // Enemy encounter: show shop closed overlay if enemy found
   if (Math.random() < 0.22 && cell.type !== "central-town" && cell.type !== "town" && cell.type !== "chest") {
-    setTimeout(showEnemy, 350);
+    setTimeout(() => {
+      showShopClosedOverlay();
+      showEnemy();
+    }, 350);
   }
   exploreDir = null;
 }
@@ -2702,6 +2976,9 @@ function hasEquippedArrows() {
   return arrows && typeof arrows.count === "number" && arrows.count > 0;
 }
 
+// Failsafe: prevent repeated no-arrows popup during auto-attack
+let noArrowsPopupActive = false;
+
 // Patch attackEnemy to handle bow/arrows logic
 const origAttackEnemyBow = typeof attackEnemy === "function" ? attackEnemy : null;
 window.attackEnemy = function() {
@@ -2709,7 +2986,9 @@ window.attackEnemy = function() {
   if (isEquippedBow()) {
     if (!hasEquippedArrows()) {
       // Show popup: "You need arrows equipped to use a bow!"
-      showNoArrowsPopup();
+      if (!noArrowsPopupActive) showNoArrowsPopup();
+      // If auto-attack is running, stop it
+      if (typeof autoAttackActive !== "undefined" && autoAttackActive) stopAutoAttack && stopAutoAttack();
       return;
     }
   }
@@ -2733,20 +3012,56 @@ function showNoArrowsPopup() {
   // Remove old popup if exists
   let oldPopup = document.getElementById('no-arrows-popup');
   if (oldPopup) oldPopup.remove();
+  noArrowsPopupActive = true;
+  // Add styles for pulsate, glow, and grow
+  if (!document.getElementById('no-arrows-popup-style')) {
+    const style = document.createElement('style');
+    style.id = 'no-arrows-popup-style';
+    style.textContent = `
+      @keyframes cautionPulseGlow {
+        0% {
+          text-shadow: 0 0 0px #ffba3a, 0 0 0px #ffd36b;
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          text-shadow: 0 0 24px #ffba3a, 0 0 48px #ffd36b;
+          transform: scale(1.25);
+          opacity: 0.93;
+        }
+        100% {
+          text-shadow: 0 0 0px #ffba3a, 0 0 0px #ffd36b;
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      #no-arrows-caution {
+        animation: cautionPulseGlow 1.2s infinite;
+        display: inline-block;
+        transition: transform 0.2s;
+      }
+    `;
+    document.head.appendChild(style);
+  }
   // Create popup
   const popup = document.createElement('div');
   popup.id = 'no-arrows-popup';
   popup.style = 'position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
   popup.innerHTML = `
     <div style="background:#23252a;padding:32px 38px 24px 38px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;">
-      <div style="color:#ff4444;font-size:1.2em;margin-bottom:18px;">No Arrows Equipped!</div>
+      <div id="no-arrows-caution" style="font-size:3em;margin-bottom:10px;">⚠️</div>
+      <div style="color:#ffba3a;font-size:1.2em;margin-bottom:12px;">No Arrows Equipped!</div>
       <div style="margin-bottom:12px;">You need arrows equipped to use a bow.<br>Equip arrows in your equipment panel.</div>
+      <div style="color:#ffd36b;font-size:1.05em;margin-bottom:18px;text-align:center;">
+        <b>The spirits frown upon archers who forget their arrows...</b>
+      </div>
       <button id="no-arrows-ok" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">OK</button>
     </div>
   `;
   document.body.appendChild(popup);
   document.getElementById('no-arrows-ok').onclick = function() {
     popup.remove();
+    noArrowsPopupActive = false;
   };
 }
 
@@ -3181,6 +3496,8 @@ function getRandomEnemy() {
   };
 }
 function showEnemy() {
+  // Only show a normal enemy if not in unknown enemy mode
+  if (window._unknownEnemyActive) return;
   currentEnemy = getRandomEnemy();
   inCombat = true;
   renderEnemyEncounter();
@@ -3218,6 +3535,33 @@ function attackEnemy() {
     logMsg("No enemy to attack.");
     return;
   }
+  // Debug 1-Hit Kill Sword logic (works for all enemies including Ancient Boss)
+  if (
+    player.equipment.weapon &&
+    player.equipment.weapon.name === "Debug 1-Hit Sword"
+  ) {
+    let hit = currentEnemy.health;
+    currentEnemy.health = 0;
+    showHitsplat(hit);
+    logMsg(`<span style="color:#ff4444;font-weight:bold;">You instantly killed the <b>${currentEnemy.name}</b>!</span>`);
+    renderEnemyEncounter();
+    let goldDrop = Math.floor(Math.random() * 51);
+    player.gold += goldDrop;
+    let randomItem = JSON.parse(JSON.stringify(items[Math.floor(Math.random() * items.length)]));
+    addItem(randomItem);
+    let goldMsg = goldDrop > 0 ? ` <span style="color:gold;">+${goldDrop} Gold</span>` : '';
+    logMsg(`<span style="color:#90ee90"><b>You defeated the ${currentEnemy.name}!</b></span> +${currentEnemy.xp} XP${goldMsg} and found ${randomItem.name}`);
+    player.experience += currentEnemy.xp;
+    checkLevelUp();
+    // If Ancient Boss, give boss rewards and reset boss state
+    if (currentEnemy.isBoss) {
+      giveAncientBossRewards && giveAncientBossRewards();
+      ancientBossActive = false;
+    }
+    clearEnemy();
+    renderPlayerStats();
+    return;
+  }
   let pAtk = (player.equipment.weapon ? player.equipment.weapon.attackPower||8 : 6)
       + (player.equipment.ring ? player.equipment.ring.attackPower||0 : 0);
   let hit = 0;
@@ -3241,8 +3585,8 @@ function attackEnemy() {
     player.gold += goldDrop;
     let randomItem = JSON.parse(JSON.stringify(items[Math.floor(Math.random() * items.length)]));
     addItem(randomItem);
-    let goldMsg = goldDrop > 0 ? ` <span style=\"color:gold;\">+${goldDrop} Gold</span>` : '';
-    logMsg(`<span style=\"color:#90ee90\"><b>You defeated the ${currentEnemy.name}!</b></span> +${currentEnemy.xp} XP${goldMsg} and found ${randomItem.name}`);
+    let goldMsg = goldDrop > 0 ? ` <span style="color:gold;">+${goldDrop} Gold</span>` : '';
+    logMsg(`<span style="color:#90ee90"><b>You defeated the ${currentEnemy.name}!</b></span> +${currentEnemy.xp} XP${goldMsg} and found ${randomItem.name}`);
     player.experience += currentEnemy.xp;
     checkLevelUp();
     clearEnemy();
@@ -3376,7 +3720,7 @@ function checkLevelUp() {
   }
 }
 function respawnPlayer() {
-  player.health = Math.floor(player.maxHealth * 0.7);
+  player.health = player.maxHealth;
   playerPosition = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
   discovered[playerPosition.y][playerPosition.x] = true;
   renderPlayerStats();
@@ -3506,7 +3850,7 @@ document.getElementById('town-popup-no').onclick = function() {
         // Chest
         else if (cell.type === "chest") {
           cellClass += " chest";
-          label = "💰";
+            label = "🪙";
         }
         // Area
         else if (cell.type === "area") {
@@ -4685,7 +5029,7 @@ window.movePanelToColumn = movePanelToColumn;
   Adds a prayer stat (default 50/50) to player stats, and a separate prayer panel (menu) below player stats.
   Adds two prayers: Deflect (🗡️) and Heal (+). Heal prayer restores +10 health after each enemy turn.
 */
-
+ const debugSecret = "legend2024"; // Change this to your desired password
 // 1. Add prayer stat to player object (default 50/50)
 if (typeof player.prayer !== "number") player.prayer = 50;
 if (typeof player.maxPrayer !== "number") player.maxPrayer = 50;
@@ -5297,6 +5641,366 @@ if (mainLoadInput) {
 })();
 </script>
 </body>
-</html>
+<!-- DEBUG MODE POPUP & LOGIC -->
+<style>
+  #debug-mode-banner {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100vw;
+    background: #ff4444;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-align: center;
+    z-index: 99999;
+    padding: 8px 0;
+    letter-spacing: 2px;
+    box-shadow: 0 2px 12px #000a;
+    cursor: pointer;
+  }
+  #debug-popup {
+    display: none;
+    position: fixed;
+    z-index: 100000;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #191a1ecc;
+    align-items: center;
+    justify-content: center;
+  }
+  #debug-popup-inner {
+    background: #23252a;
+    padding: 38px 44px 32px 44px;
+    border-radius: 18px;
+    box-shadow: 0 2px 24px #000a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 340px;
+    max-width: 96vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  #debug-popup label { color: #ffd36b; font-weight: bold; }
+  #debug-popup input[type="checkbox"] { margin-right: 8px; }
+  #debug-popup select, #debug-popup button { margin: 4px 0; }
+  #debug-popup .debug-section { margin-bottom: 18px; }
+</style>
+<div id="debug-mode-banner" style="display:none;">DEBUG MODE ENABLED (F12 to toggle)</div>
+<script>
+(function() {
+  let debugMode = false;
+  let unlimitedHealth = false;
 
+
+
+  // Store if password was validated
+  let debugPasswordValidated = false;
+
+  function showDebugPasswordPrompt(callback) {
+    // Remove old popup if exists
+    let old = document.getElementById('debug-password-popup');
+    if (old) old.remove();
+    // Create popup
+    const popup = document.createElement('div');
+    popup.id = 'debug-password-popup';
+    popup.style = 'position:fixed;z-index:100001;top:0;left:0;width:100vw;height:100vh;background:#191a1ecc;display:flex;align-items:center;justify-content:center;';
+    popup.innerHTML = `
+      <div style="background:#23252a;padding:32px 38px 24px 38px;border-radius:18px;box-shadow:0 2px 24px #000a;display:flex;flex-direction:column;align-items:center;min-width:320px;">
+        <div style="color:#ffba3a;font-size:1.2em;margin-bottom:18px;">Enter Debug Password</div>
+        <input id="debug-password-input" type="password" placeholder="Password..." style="font-size:1.1em;padding:6px 18px;border-radius:7px;border:1.5px solid #444;background:#18191c;color:#fff;margin-bottom:18px;width:180px;outline:none;">
+        <div id="debug-password-error" style="color:#ff4444;margin-bottom:10px;display:none;font-size:1em;"></div>
+        <div style="display:flex;gap:18px;">
+          <button id="debug-password-ok" style="font-size:1.1em;font-weight:bold;background:#ffba3a;color:#23252a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">OK</button>
+          <button id="debug-password-cancel" style="font-size:1.1em;font-weight:bold;background:#35373e;color:#ffba3a;border:none;border-radius:7px;padding:8px 32px;cursor:pointer;">Cancel</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(popup);
+    document.getElementById('debug-password-ok').onclick = function() {
+      const val = document.getElementById('debug-password-input').value;
+      if (val === debugSecret) {
+        debugPasswordValidated = true;
+        popup.remove();
+        callback(true);
+      } else {
+        document.getElementById('debug-password-error').textContent = "Incorrect password.";
+        document.getElementById('debug-password-error').style.display = 'block';
+      }
+    };
+    document.getElementById('debug-password-cancel').onclick = function() {
+      popup.remove();
+      callback(false);
+    };
+    document.getElementById('debug-password-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('debug-password-ok').click();
+    });
+    setTimeout(() => document.getElementById('debug-password-input').focus(), 100);
+  }
+
+  function createDebugUI() {
+    // Remove existing popup if any
+    let oldPopup = document.getElementById('debug-popup');
+    if (oldPopup) oldPopup.remove();
+
+    // Create popup
+    const popup = document.createElement('div');
+    popup.id = 'debug-popup';
+    popup.style.display = debugMode ? 'flex' : 'none';
+    popup.style.position = 'fixed';
+    popup.style.zIndex = '100000';
+    popup.style.top = '0';
+    popup.style.left = '0';
+    popup.style.width = '100vw';
+    popup.style.height = '100vh';
+    popup.style.background = '#191a1ecc';
+    popup.style.alignItems = 'center';
+    popup.style.justifyContent = 'center';
+
+    popup.innerHTML = `
+      <div id="debug-popup-inner">
+        <div style="font-size:1.5em;color:#ff4444;font-weight:bold;margin-bottom:18px;">Debug Mode</div>
+        <div class="debug-section">
+          <label><input type="checkbox" id="debug-unlimited-health"> Unlimited Health</label>
+        </div>
+        <div class="debug-section">
+          <button id="debug-1hit-weapon" style="background:#ffba3a;color:#23252a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Give 1-Hit Kill Weapon</button>
+        </div>
+        <div class="debug-section">
+          <label>Force Spawn Enemy:</label>
+          <select id="debug-enemy-list"></select>
+          <button id="debug-spawn-enemy" style="margin-left:8px;">Spawn</button>
+        </div>
+        <div class="debug-section">
+          <label>Force Encounter:</label>
+          <select id="debug-encounter-list"></select>
+          <button id="debug-force-encounter" style="margin-left:8px;">Trigger</button>
+        </div>
+        <div class="debug-section">
+          <label><input type="checkbox" id="debug-disable-checkbox"> Disable Debug Mode & Menu</label>
+        </div>
+        <button id="debug-close-btn" style="margin-top:12px;background:#35373e;color:#ffba3a;border:none;border-radius:6px;padding:6px 18px;font-weight:bold;cursor:pointer;">Close</button>
+      </div>
+    `;
+    document.body.appendChild(popup);
+
+    // Populate enemy and encounter lists
+    populateEnemyList();
+    populateEncounterList();
+
+    // Event handlers
+    document.getElementById('debug-unlimited-health').checked = unlimitedHealth;
+    document.getElementById('debug-unlimited-health').onchange = function() {
+      unlimitedHealth = this.checked;
+    };
+    document.getElementById('debug-1hit-weapon').onclick = function() {
+      let weapon = {
+        name: "Debug 1-Hit Sword",
+        type: "weapon",
+        attackPower: 99999,
+        price: 0,
+        description: "Debug sword. Instantly kills enemies."
+      };
+      addItem(weapon);
+      logMsg('<span style="color:#ff4444;">Debug: 1-Hit Kill Weapon added to bag.</span>');
+      renderBagInv && renderBagInv();
+    };
+    document.getElementById('debug-spawn-enemy').onclick = function() {
+      let name = document.getElementById('debug-enemy-list').value;
+      if (!name) return;
+      if (name === (window.ancientBossData && window.ancientBossData.name)) {
+        window.showAncientBoss && window.showAncientBoss();
+        logMsg('<span style="color:#ff4444;">Debug: Ancient Boss spawned.</span>');
+      } else {
+        // Use the hardcoded debug enemy list
+        let enemy = (window._debugEnemiesList || []).find(e => e.name === name);
+        if (enemy) {
+          // If enemy has random stats, re-randomize on spawn
+          let spawned = Object.assign({}, enemy);
+          if (typeof spawned.maxHealth === "function") spawned.maxHealth = spawned.maxHealth();
+          if (typeof spawned.xp === "function") spawned.xp = spawned.xp();
+          // For enemies with random stats, recalculate
+          if (spawned.name && [
+            "Dark Knight", "Fire Elemental", "Stone Golem", "Vampire Lord", "Frost Giant",
+            "Shadow Assassin", "Ancient Dragon", "Lich King", "Forest Guardian", "Thunder Beast"
+          ].includes(spawned.name)) {
+            spawned.maxHealth = Math.floor(Math.random() * 101) + 150;
+            spawned.xp = Math.floor(Math.random() * 51) + 50;
+          }
+          currentEnemy = {
+            name: spawned.name,
+            health: spawned.maxHealth,
+            maxHealth: spawned.maxHealth,
+            minAttack: spawned.minAttack,
+            maxAttack: spawned.maxAttack,
+            xp: spawned.xp
+          };
+          inCombat = true;
+          if (typeof renderEnemyEncounter === "function") renderEnemyEncounter();
+          // Ensure enemy encounter UI is visible and updated
+          const enemyDiv = document.getElementById('enemy-encounter');
+          if (enemyDiv) {
+            enemyDiv.style.display = "flex";
+            // Also update the enemy name and HP bar
+            if (window.currentEnemy) {
+              document.getElementById('enemy-name-label').textContent = window.currentEnemy.name;
+              const percent = Math.max(0, 100 * window.currentEnemy.health / window.currentEnemy.maxHealth);
+              document.getElementById('enemy-hp-bar-inner').style.width = percent + "%";
+              document.getElementById('enemy-hp-bar-text').textContent = `${window.currentEnemy.health}/${window.currentEnemy.maxHealth}`;
+              document.getElementById('enemy-image').innerHTML = `${window.currentEnemy.name}`;
+            }
+          }
+          logMsg(`<span style="color:#ff4444;">Debug: Spawned enemy "${spawned.name}".</span>`);
+        }
+      }
+      popup.style.display = 'none';
+    };
+    document.getElementById('debug-force-encounter').onclick = function() {
+      let enc = document.getElementById('debug-encounter-list').value;
+      if (enc === "Normal Enemy") {
+        window.showEnemy && window.showEnemy();
+        logMsg('<span style="color:#ff4444;">Debug: Forced normal enemy encounter.</span>');
+      } else if (enc === "Ancient Boss") {
+        window.showAncientBoss && window.showAncientBoss();
+        logMsg('<span style="color:#ff4444;">Debug: Forced Ancient Boss encounter.</span>');
+      } else if (enc === "Secret Tunnel") {
+        window.showSecretTunnelPopup && window.showSecretTunnelPopup();
+        logMsg('<span style="color:#ff4444;">Debug: Forced Secret Tunnel encounter.</span>');
+      } else if (enc === "Unknown Enemy") {
+        window.showUnknownEnemyEncounter && window.showUnknownEnemyEncounter();
+        logMsg('<span style="color:#ff4444;">Debug: Forced Unknown Enemy encounter.</span>');
+      }
+      popup.style.display = 'none';
+    };
+    document.getElementById('debug-disable-checkbox').checked = !debugMode;
+    document.getElementById('debug-disable-checkbox').onchange = function() {
+      if (this.checked) {
+        debugMode = false;
+        unlimitedHealth = false;
+        removeDebugUI();
+        updateDebugBanner();
+      }
+    };
+    document.getElementById('debug-close-btn').onclick = function() {
+      popup.style.display = 'none';
+      debugMode = false;
+      unlimitedHealth = false;
+      removeDebugUI();
+      updateDebugBanner();
+    };
+    function populateEnemyList() {
+      let debugEnemyList = document.getElementById('debug-enemy-list');
+      if (!debugEnemyList) return;
+      debugEnemyList.innerHTML = "";
+      // Hardcoded enemy list
+      const debugEnemies = [
+        { name: "Slime", maxHealth: 40, minAttack: 4, maxAttack: 9, xp: 15 },
+        { name: "Goblin", maxHealth: 55, minAttack: 7, maxAttack: 14, xp: 22 },
+        { name: "Wolf", maxHealth: 65, minAttack: 10, maxAttack: 19, xp: 29 },
+        { name: "Bandit", maxHealth: 80, minAttack: 14, maxAttack: 23, xp: 40 },
+        { name: "Orc", maxHealth: 120, minAttack: 18, maxAttack: 29, xp: 60 },
+        { name: "Dark Knight", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Fire Elemental", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Stone Golem", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Vampire Lord", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Frost Giant", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Shadow Assassin", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Ancient Dragon", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Lich King", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Forest Guardian", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Thunder Beast", maxHealth: Math.floor(Math.random() * 101) + 150, minAttack: 30, maxAttack: 40, xp: Math.floor(Math.random() * 51) + 50 },
+        { name: "Skeleton Warrior", maxHealth: 70, minAttack: 12, maxAttack: 20, xp: 32 },
+        { name: "Zombie", maxHealth: 90, minAttack: 10, maxAttack: 18, xp: 28 },
+        { name: "Harpy", maxHealth: 60, minAttack: 15, maxAttack: 22, xp: 35 },
+        { name: "Troll", maxHealth: 140, minAttack: 20, maxAttack: 32, xp: 55 },
+        { name: "Sand Wraith", maxHealth: 85, minAttack: 17, maxAttack: 25, xp: 38 },
+        { name: "Cursed Knight", maxHealth: 130, minAttack: 25, maxAttack: 36, xp: 65 },
+        { name: "Giant Spider", maxHealth: 75, minAttack: 13, maxAttack: 21, xp: 30 },
+        { name: "Dire Bear", maxHealth: 110, minAttack: 18, maxAttack: 28, xp: 48 },
+        { name: "Crystal Serpent", maxHealth: 100, minAttack: 22, maxAttack: 33, xp: 52 },
+        { name: "Wraith", maxHealth: 95, minAttack: 19, maxAttack: 27, xp: 44 }
+      ];
+      debugEnemies.forEach(e => {
+        let opt = document.createElement('option');
+        opt.value = e.name;
+        opt.textContent = e.name;
+        debugEnemyList.appendChild(opt);
+      });
+      // Add Ancient Boss if present
+      if (window.ancientBossData && window.ancientBossData.name) {
+        let opt = document.createElement('option');
+        opt.value = window.ancientBossData.name;
+        opt.textContent = window.ancientBossData.name;
+        debugEnemyList.appendChild(opt);
+      }
+      renderPlayerStats && renderPlayerStats();
+    }
+    function populateEncounterList() {
+      let debugEncounterList = document.getElementById('debug-encounter-list');
+      if (!debugEncounterList) return;
+      debugEncounterList.innerHTML = "";
+      const encounters = [
+        "Normal Enemy",
+        "Ancient Boss",
+        "Secret Tunnel",
+        "Unknown Enemy"
+      ];
+      encounters.forEach(enc => {
+        let opt = document.createElement('option');
+        opt.value = enc;
+        opt.textContent = enc;
+        debugEncounterList.appendChild(opt);
+      });
+    }
+  }
+
+  // F12 toggles debug mode
+  window.addEventListener('keydown', function(e) {
+    if (e.key === "F12") {
+      if (!debugPasswordValidated) {
+        showDebugPasswordPrompt(function(success) {
+          if (success) {
+            debugMode = true;
+            createDebugUI();
+            updateDebugBanner();
+          }
+        });
+      } else {
+        debugMode = !debugMode;
+        if (debugMode) {
+          createDebugUI();
+        } else {
+          unlimitedHealth = false;
+          removeDebugUI();
+        }
+        updateDebugBanner();
+      }
+      e.preventDefault();
+    }
+  });
+
+  // Banner click shows debug UI if enabled
+  let banner = document.getElementById('debug-mode-banner');
+  if (banner) {
+    banner.onclick = function() {
+      if (debugMode) {
+        createDebugUI();
+        let popup = document.getElementById('debug-popup');
+        if (popup) popup.style.display = 'flex';
+      }
+    };
+  }
+
+  function removeDebugUI() {
+    let popup = document.getElementById('debug-popup');
+    if (popup) popup.remove();
+  }
+  function updateDebugBanner() {
+    let banner = document.getElementById('debug-mode-banner');
+    if (banner) banner.style.display = debugMode ? 'block' : 'none';
+  }
+
+})();
+</script>
+</script>
+</script>
 
