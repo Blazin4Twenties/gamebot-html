@@ -52,6 +52,10 @@ let towns = [];
 let chests = [];
 let playerPosition = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
 let enemyIcons = {};
+let enemyAttack; // Global declaration for enemy attack function
+let movePlayer; // Global declaration for move player function
+let startExplore; // Global declaration for exploration function
+let chooseExploreDir; // Global declaration for choose explore direction function
 const enemyPool = [
   { name: "Slime", maxHealth: 40, minAttack: 4, maxAttack: 9, xp: 15 },
   { name: "Goblin", maxHealth: 55, minAttack: 7, maxAttack: 14, xp: 22 },
@@ -765,7 +769,7 @@ function renderMap() {
 }
 
   // Patch movePlayer and doExplore to call maybeShowSecretTunnel
-  function movePlayer(dx,dy) {
+  movePlayer = function(dx,dy) {
       if (inCombat || chestOpen) {
       logMsg('You cannot move while fighting or opening a chest!');
       return;
@@ -814,21 +818,21 @@ function renderMap() {
       if (cell.type !== "tunnel") {
         maybeShowSecretTunnel();
       }
-  }
+  };
   
-  function startExplore() {
+  startExplore = function() {
     if (inCombat || chestOpen) {
     logMsg("Finish your battle or chest first!");
     return;
     }
     document.getElementById('direction-select-bar').classList.add('active');
     // Hide shop if enemy is found during explore (handled in doExplore)
-  }
-  function chooseExploreDir(dx, dy) {
+  };
+  chooseExploreDir = function(dx, dy) {
     document.getElementById('direction-select-bar').classList.remove('active');
     exploreDir = {dx, dy};
     doExplore();
-  }
+  };
 
 // --- SHOP CLOSED DURING COMBAT LOGIC ---
 function showShopClosedOverlay() {
@@ -2071,7 +2075,7 @@ window.attackEnemy = function() {
   setTimeout(() => { enemyAttack(); }, 700);
 
   // Enemy attack function
-  function enemyAttack() {
+  enemyAttack = function() {
     if (!currentEnemy || !inCombat) return;
     // Skip attack if frozen or stunned
     if (currentEnemy._skipNextAttack) {
@@ -3645,6 +3649,10 @@ if (mainLoadInput) {
 window.addEventListener('DOMContentLoaded', function() {
   playerPosition.x = Math.floor(mapSize/2);
   playerPosition.y = Math.floor(mapSize/2);
+  // Initialize map if not already initialized
+  if (!mapData || mapData.length === 0) {
+    initMap();
+  }
   if (Array.isArray(discovered) && Array.isArray(discovered[playerPosition.y])) {
     discovered[playerPosition.y][playerPosition.x] = true;
   }
