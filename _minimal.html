@@ -1,0 +1,27 @@
+<!doctype html><html><head><script src="http://127.0.0.1:8931/lib/three.min.js"></script></head>
+<body style="background:#222">
+<canvas id="c" width="640" height="340"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+r.setPixelRatio(1);
+r.outputEncoding = THREE.sRGBEncoding;
+r.toneMapping = THREE.ACESFilmicToneMapping;
+r.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xc8964a);
+scene.fog = new THREE.Fog(0xd8a85a, 12, 30);
+const cam = new THREE.PerspectiveCamera(50, 640/340, 0.1, 100);
+cam.position.set(0, 2.1, 5.4);
+cam.lookAt(0, 1.0, 0);
+scene.add(new THREE.HemisphereLight(0xcfe8ff, 0x2a2a22, 0.55));
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(28, 28), new THREE.MeshStandardMaterial({ color: 0x8a7a5a }));
+ground.rotation.x = -Math.PI/2;
+scene.add(ground);
+const cube = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshStandardMaterial({ color: 0x2266cc }));
+cube.position.y = 0.5;
+scene.add(cube);
+function loop(){ requestAnimationFrame(loop); r.render(scene, cam); }
+loop();
+setTimeout(()=>{ document.title = 'DRAWN'; }, 1000);
+</script></body></html>
