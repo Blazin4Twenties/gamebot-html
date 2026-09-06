@@ -1174,10 +1174,9 @@
     }
     .equip-slot .slot-tooltip {
       display: none;
-      position: fixed;
-      left: 50%;
+      position: absolute;
       top: 50%;
-      transform: translate(-50%, -120%);
+      transform: translateY(-50%);
       background: #18191c;
       color: #eee;
       padding: 10px 16px;
@@ -1189,6 +1188,14 @@
       z-index: 1000;
       pointer-events: none;
       min-width: 180px;
+    }
+    /* Anchor tooltips to the inner edge of each column so they open toward the
+       (non-clipped) portrait center instead of outside the panel. */
+    .equipment-side.left .equip-slot .slot-tooltip {
+      left: calc(100% + 8px);
+    }
+    .equipment-side.right .equip-slot .slot-tooltip {
+      right: calc(100% + 8px);
     }
     .equip-slot:hover .slot-tooltip {
       display: block;
@@ -3338,9 +3345,9 @@ let areaNames = [
 let mapSize = 18;
 let mapData = [];
 let discovered = [];
-// Global combat hook. The real `enemyAttack` is declared (block-scoped) inside the attack
-// flow, so prayer/save systems can't reference it directly. Expose a global var so later
-// scripts can patch/wrap it; it is wired up to the real implementation at 5359.
+// Global combat hook. The real `enemyAttack` is a block-scoped function declaration inside
+// the attack flow, so later prayer/save scripts can't reference it directly (and doing so
+// throws ReferenceError). Declare a global var here so those scripts can safely read/patch it.
 var enemyAttack;
 let towns = [];
 let chests = [];
