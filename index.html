@@ -1107,21 +1107,24 @@
       flex-direction: row;
       justify-content: center;
       align-items: flex-start;
-      gap: 10px;
+      gap: 6px;
       min-height: 320px;
       margin-bottom: 10px;
+      overflow: hidden;
     }
     .equipment-side {
       display: flex;
       flex-direction: column;
-      gap: 35px;
-      min-width: 150px;
+      gap: 12px;
+      min-width: 0;
+      flex: 0 1 84px;
+      max-width: 84px;
     }
     .equipment-side.left {
-      align-items: flex-end;
+      align-items: stretch;
     }
     .equipment-side.right {
-      align-items: flex-start;
+      align-items: stretch;
     }
 #char-portrait-box {
   width: 220px;
@@ -1136,7 +1139,8 @@
   position: relative;
 }
     .equip-slot {
-      width: 150px;
+      width: 100%;
+      box-sizing: border-box;
       height: 48px;
       margin: 5px 0;
       background: #23252a;
@@ -1144,18 +1148,24 @@
       border: 2.5px solid #353841;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       position: relative;
       cursor: pointer;
       transition: border-color 0.2s;
-      font-size: 1.12em;
+      font-size: 0.9em;
       color: #ffba3a;
       font-weight: bold;
-      padding-left: 14px;
-      overflow: visible;
-      min-width: 150px;
-      max-width: 180px;
+      padding: 0 4px;
+      overflow: hidden;
+      min-width: 0;
+      text-align: center;
+    }
+    .equip-slot .item-name {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
+      max-width: 100%;
     }
     .equip-slot.selected, .equip-slot:hover {
       border-color: #ffba3a;
@@ -1165,7 +1175,6 @@
     .equip-slot .slot-tooltip {
       display: none;
       position: absolute;
-      left: 110%;
       top: 50%;
       transform: translateY(-50%);
       background: #18191c;
@@ -1176,9 +1185,17 @@
       white-space: nowrap;
       font-size: 1.05em;
       box-shadow: 0 2px 12px #0007;
-      z-index: 10;
+      z-index: 1000;
       pointer-events: none;
       min-width: 180px;
+    }
+    /* Anchor tooltips to the inner edge of each column so they open toward the
+       (non-clipped) portrait center instead of outside the panel. */
+    .equipment-side.left .equip-slot .slot-tooltip {
+      left: calc(100% + 8px);
+    }
+    .equipment-side.right .equip-slot .slot-tooltip {
+      right: calc(100% + 8px);
     }
     .equip-slot:hover .slot-tooltip {
       display: block;
@@ -3328,6 +3345,10 @@ let areaNames = [
 let mapSize = 18;
 let mapData = [];
 let discovered = [];
+// Global combat hook. The real `enemyAttack` is a block-scoped function declaration inside
+// the attack flow, so later prayer/save scripts can't reference it directly (and doing so
+// throws ReferenceError). Declare a global var here so those scripts can safely read/patch it.
+var enemyAttack;
 let towns = [];
 let chests = [];
 let playerPosition = { x: Math.floor(mapSize/2), y: Math.floor(mapSize/2) };
@@ -5611,6 +5632,8 @@ document.getElementById('town-popup-no').onclick = function() {
   renderMap = function() {
     const map = document.getElementById('game-map');
     map.innerHTML = "";
+    // Guard: map not generated yet (called on DOMContentLoaded before initMap)
+    if (!Array.isArray(mapData) || !mapData.length) return;
     for (let y = 0; y < mapSize; ++y) {
       for (let x = 0; x < mapSize; ++x) {
         let cellClass = "map-cell";
@@ -7451,7 +7474,7 @@ if (!document.getElementById('prayer-altar-panel')) {
   const altarPanel = document.createElement('div');
   altarPanel.id = 'prayer-altar-panel';
   altarPanel.className = 'panel';
-  altarPanel.style = 'background:url("assets/chaos_altar.png.png") center/cover;border-radius:10px;box-shadow:0 2px 10px #000a;margin-top:8px;min-height:200px;position:relative;overflow:hidden;';
+  altarPanel.style = 'background:url("Images/chaos_altar.png") center/cover no-repeat;border-radius:10px;box-shadow:0 2px 10px #000a;margin-top:8px;min-height:200px;position:relative;overflow:hidden;';
 
   altarPanel.innerHTML = `
     <!-- Dark overlay for better text readability -->
@@ -9909,11 +9932,22 @@ renderBagInv = function() {
   function buildEnvironment(scene, cell) {
     const type = cell && cell.type;
     const name = (cell && cell.name) || "Plains";
-    if (type === "central-town") return buildTownEnv(scene, true);
-    if (type === "town") return buildTownEnv(scene, false);
-    if (type === "chest") return buildChestEnv(scene);
-    if (type === "tunnel") return buildTunnelEnv(scene);
-    (environments[name] || environments["Plains"])(scene);
+    // Build into a throwaway scene so env builders' addSky()/addGround() calls work as
+    // intended, then adopt the sky (background/fog) onto the real rendered scene and move
+    // the built geometry into the env group. Previously these ran directly on envGroup (a
+    // THREE.Group), so the sky background/fog were silently set on the group and ignored,
+    // leaving worldScene.background null (black) and the top of the world view blank.
+    const tmp = new THREE.Scene();
+    if (type === "central-town") buildTownEnv(tmp, true);
+    else if (type === "town") buildTownEnv(tmp, false);
+    else if (type === "chest") buildChestEnv(tmp);
+    else if (type === "tunnel") buildTunnelEnv(tmp);
+    else (environments[name] || environments["Plains"])(tmp);
+    if (worldScene) {
+      worldScene.background = tmp.background;
+      worldScene.fog = tmp.fog;
+    }
+    while (tmp.children.length) scene.add(tmp.children[0]);
   }
 
   // ==================== WORLD VIEW SCENE ====================
@@ -9928,8 +9962,8 @@ renderBagInv = function() {
     worldRenderer = makeRenderer(worldCanvas);
     worldScene = new THREE.Scene();
     worldCamera = new THREE.PerspectiveCamera(50, 2, 0.1, 100);
-    worldCamera.position.set(0, 2.1, 5.4);
-    worldCamera.lookAt(0, 1.0, 0);
+    worldCamera.position.set(0, 2.6, 6.8);
+    worldCamera.lookAt(0, 1.6, 0);
 
     const hemi = new THREE.HemisphereLight(0xcfe8ff, 0x2a2a22, 0.55);
     worldScene.add(hemi);
